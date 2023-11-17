@@ -1,7 +1,7 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import os #to save plots
 
 data= pd.read_csv('train.csv')
 #third_column = data.iloc[:, 2]  # Accessing the third column 
@@ -12,17 +12,18 @@ import seaborn as sns
 #plt.show()
 
 # Assuming 'data' is your DataFrame
-first_20_drugs = data['Compound'].value_counts().index[:50]  # Get the names of the first 10 drugs
+first_25_drugs = data['Compound'].value_counts().index[:25]  # Get the names of the first 10 drugs
 
-# Filter the data for the first 20 drugs
-filtered_data = data[data['Compound'].isin(first_20_drugs)]
+# Filter the data for the first 25 drugs
+filtered_data = data[data['Compound'].isin(first_25_drugs)]
 
 # Create the scatter plot
 sns.scatterplot(x='Compound', y='RT', hue='Lab', data=filtered_data)
 plt.xlabel('Drug Names (SMILES)')
 plt.ylabel('Retention Time (RT)')
-plt.title('Retention Time vs Drug Names by Lab (First 20 Drugs)')
-plt.xticks(rotation=90)  # Rotate x-axis labels if needed
-plt.legend(title='Lab', bbox_to_anchor=(1.05, 1), loc='upper left')  # Adjust legend position
+plt.title('Retention Time vs Drug Names by Lab (First 25 Drugs)')
+plt.xticks(rotation=90, fontsize=8)  # Rotate x-axis labels if needed
+plt.legend(title='Lab', bbox_to_anchor=(1.05, 1), loc='upper left', prop={'size': 5} )  # Adjust legend position
 plt.tight_layout()
+plt.savefig(os.path.join("visualisation", 'scatter_plot.jpg'))
 plt.show()
