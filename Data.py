@@ -4,18 +4,17 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os #to save plots
 from rdkit import Chem
-
+from openpyxl.workbook import Workbook
 data= pd.read_csv('train.csv')
-#third_column = data.iloc[:, 2]  # Accessing the third column 
-#print(third_column)
 
-
+# Export the subset data to an Excel file // might need to install Excel viewer extention in vs code
+data.head(10).to_excel('table_of_data.xlsx', index=False)  # Displaying the first 10 rows as an example
 
 # Filter the data for the first 25 drugs
 first_25_drugs = data['Compound'].value_counts().index[:25]  # Get the names of the first 10 drugs
 filtered_data = data[data['Compound'].isin(first_25_drugs)]
 
-# Create the scatter plot
+# Create the scatter plot (Compound vs RT : color coded with the Lab)
 sns.scatterplot(x='Compound', y='RT', hue='Lab', data=filtered_data)
 plt.xlabel('Compound')
 plt.ylabel('Retention Time (RT)')
