@@ -1,3 +1,4 @@
+
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import LogisticRegression
@@ -6,7 +7,7 @@ import numpy as np
 import pandas as pd
 import os
 def creation_result_file(prediction, name_of_file):
-    ids = range(2, len(prediction) + 2)  # Generate IDs starting from 2
+    ids = range(1, len(prediction) + 1)  # Generate IDs starting from 1
     output_df = pd.DataFrame({'ID': ids, 'RT': prediction})
 
     # Save the DataFrame to a CSV file in the folder results
