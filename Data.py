@@ -28,7 +28,13 @@ def vis_compound_RT():
     plt.tight_layout()
     plt.savefig(os.path.join("visualisation", 'scatter_plot.jpg'))
     plt.show()
-    
+
+def creation_result_file(prediction, name_of_file):
+    ids = range(2, len(prediction) + 2)  # Generate IDs starting from 2
+    output_df = pd.DataFrame({'ID': ids, 'RT': prediction})
+
+    # Save the DataFrame to a CSV file
+    output_df.to_csv(name_of_file, index=False)
 def linear_model():
     from sklearn.model_selection import train_test_split
     from sklearn.linear_model import LinearRegression
@@ -50,12 +56,10 @@ def linear_model():
     # Predict on the test set
     y_pred = linear_model.predict(X_test)
     
-    
-    # Save the predictions to a CSV file
-    output_df = pd.DataFrame({'Predicted_RT': y_pred})
-    output_df.to_csv('predicttion_linear_model.csv', index=False) 
-    # Calculate RMSE
+    # Save the predication in csv file
+    creation_result_file(y_pred,'prediction_linear_model.csv')
     #test_rmse = np.sqrt(mean_squared_error(y_test, y_pred))
     #print(f"Test RMSE: {test_rmse:.4f}")
     
 linear_model()
+
