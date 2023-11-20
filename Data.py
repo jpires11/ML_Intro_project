@@ -34,4 +34,5 @@ def vis_compound_RT():
 
     
 #pf.linear_model(data,test_data)
-pf.poisson_regression(data,test_data)
+#pf.poisson_regression(data,test_data)
+pf.knn_regression(data,test_data)

@@ -56,6 +56,73 @@ def poisson_regression(data, test_data):
     creation_result_file(y_pred,'prediction_poisson_model.csv')
     
     
+#KNN model
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.model_selection import GridSearchCV
+def knn_regression_best_model(data):
+    """
+    finding the best number of neighbors to use in KNN regression and also
+    returns the mse useful to chose a cv appropriate
+    
+
+    Args:
+        data (Dataset from pandas): the entire training set 
+
+    Returns:
+        int: best_parameter 
+        
+    """
+    # Set the training DataSet
+    X = data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
+    y = data['RT']
+
+    # Split data into training and holdout validation sets
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Define the range of hyperparameters to test
+    param_grid = {'n_neighbors': [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]}  
+
+    # Initialize KNN Regressor
+    knn = KNeighborsRegressor()
+
+    # Perform grid search with cross-validation
+    grid_search = GridSearchCV(knn, param_grid, cv=5, scoring='neg_mean_squared_error')
+    grid_search.fit(X_train, y_train)
+
+    # Get the best hyperparameters
+    best_params = grid_search.best_params_
+
+    # Use the best model to predict on the holdout validation set
+    best_model = grid_search.best_estimator_
+    y_pred = best_model.predict(X_val)
+
+    # Evaluate the best model on the holdout validation set using MSE
+    mse = mean_squared_error(y_val, y_pred)
+    print ("K is ",best_params['n_neighbors'])
+    print()
+    print ("means squared error associated with the best number of neighbors ",mse)
+    return best_params
+
+def knn_regression(data, test_data):
+    # Set the training DataSet
+    X_train = data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
+    y_train = data['RT']
+    X_test = test_data[[f'ECFP_{i}' for i in range(1, 1025)]]
+
+    # Initialize KNN Regressor
+    params=knn_regression_best_model(data)
+    n_neighbors = params['n_neighbors']
+    knn = KNeighborsRegressor(n_neighbors)  # You can adjust the number of neighbors as needed
+
+    # Fit the KNN model
+    knn.fit(X_train, y_train)
+
+    # Predict 'y' for the test set using the trained model
+    y_pred = knn.predict(X_test)
+
+    # # Save the prediction in a CSV file
+    creation_result_file(y_pred,'prediction_knn.csv')
+    
 """def logistic_model(data, test_data):
     
     # Set the training DataSet
