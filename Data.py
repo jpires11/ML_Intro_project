@@ -27,7 +27,7 @@ plt.tight_layout()
 plt.savefig(os.path.join("visualisation", 'scatter_plot.jpg'))
 plt.show()
 
-
+################ Visualizing RT of each compound for each lab ##########################################
 sorted_df = filtered_data.sort_values(by='RT')
 labs = sorted_df['Lab'].unique().tolist()
 print(len(labs))
