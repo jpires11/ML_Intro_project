@@ -4,15 +4,17 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os #to save plots
 from openpyxl.workbook import Workbook
+import prediction_functions as pf
 #load data
 data= pd.read_csv('train.csv')
 test_data=pd.read_csv("test.csv")
 
 def excel_doc():
     
-    # Export the subset data to an Excel file // might need to install Excel viewer extention in vs code
-    data.head(10).to_excel('table_of_data.xlsx', index=False)  # Displaying the first 10 rows as an example
-    test_data.head(10).to_excel('table_of_test_data.xlsx', index=False)
+    # Export the subset data to an Excel file // might need to install Excel viewer extention in vs code 
+    data.head(10).to_excel(os.path.join("Excel", 'table_of_data.xlsx'), index=False)  # Displaying the first 10 rows as an example
+    test_data.head(10).to_excel(os.path.join("Excel", 'table_of_test_data.xlsx'), index=False)
+
 def vis_compound_RT():
     # Filter the data for the first 25 drugs
     first_25_drugs = data['Compound'].value_counts().index[:25]  # Get the names of the first 10 drugs
@@ -29,36 +31,6 @@ def vis_compound_RT():
     plt.savefig(os.path.join("visualisation", 'scatter_plot.jpg'))
     plt.show()
 
-def creation_result_file(prediction, name_of_file):
-    ids = range(2, len(prediction) + 2)  # Generate IDs starting from 2
-    output_df = pd.DataFrame({'ID': ids, 'RT': prediction})
 
-    # Save the DataFrame to a CSV file
-    output_df.to_csv(name_of_file, index=False)
-def linear_model():
-    from sklearn.model_selection import train_test_split
-    from sklearn.linear_model import LinearRegression
-    from sklearn.metrics import mean_squared_error
-    import numpy as np
     
-    X = data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
-    y = data['RT']
-    # Split the data into training and testing sets
-    #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    X_train = data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
-    y_train = data['RT']
-    X_test = test_data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
-    
-    # Initialize and train the linear regression model
-    linear_model = LinearRegression()
-    linear_model.fit(X_train, y_train)
-
-    # Predict on the test set
-    y_pred = linear_model.predict(X_test)
-    
-    # Save the predication in csv file
-    creation_result_file(y_pred,'prediction_linear_model.csv')
-    #test_rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-    #print(f"Test RMSE: {test_rmse:.4f}")
-    
-linear_model()
+pf.linear_model(data,test_data)
