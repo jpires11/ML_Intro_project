@@ -1,6 +1,5 @@
 
 import pandas as pd
-from matplotlib.ticker import FixedLocator
 
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -48,7 +47,6 @@ for i, lab in enumerate(labs):
         sns.scatterplot(x='Compound', y='RT', data=labdata, ax=ax)
         ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right', fontsize= 3)
         ax.set_title(f'Lab {lab}', fontsize=6)
-        ax.xaxis.set_major_locator(FixedLocator(ax.get_xticks()))
     else:
         break
 plt.show()
