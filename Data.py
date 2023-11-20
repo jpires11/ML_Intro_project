@@ -62,4 +62,3 @@ def linear_model():
     #print(f"Test RMSE: {test_rmse:.4f}")
     
 linear_model()
-
