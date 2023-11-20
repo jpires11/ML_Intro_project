@@ -6,8 +6,8 @@ import os #to save plots
 from openpyxl.workbook import Workbook
 import prediction_functions as pf
 #load data
-data= pd.read_csv('train.csv')
-test_data=pd.read_csv("test.csv")
+data= pd.read_csv(os.path.join("Data_Set",'train.csv'))
+test_data=pd.read_csv(os.path.join("Data_Set","test.csv"))
 
 def excel_doc():
     
@@ -33,4 +33,5 @@ def vis_compound_RT():
 
 
     
-pf.linear_model(data,test_data)
+#pf.linear_model(data,test_data)
+pf.poisson_regression(data,test_data)
