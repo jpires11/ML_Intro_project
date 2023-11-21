@@ -79,9 +79,11 @@ def knn_regression_best_model(data):
         
     """
     # Set the training DataSet
-    X = data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
-    y = data['RT']
+    #X = data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
+    #y = data['RT']
+    X = data.drop(["SMILES",'RT',"mol","Compound"], axis=1)  # Adjust columns to drop if needed
 
+    y = data['RT']
     # Split data into training and holdout validation sets
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -111,10 +113,12 @@ def knn_regression_best_model(data):
 
 def knn_regression(data, test_data):
     # Set the training DataSet
-    X_train = data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
+    #X_train = data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
+   # y_train = data['RT']
+    #X_test = test_data[[f'ECFP_{i}' for i in range(1, 1025)]]
+    X_train = data.drop(["SMILES",'RT',"mol","Compound"], axis=1)  # Adjust columns to drop if needed
     y_train = data['RT']
-    X_test = test_data[[f'ECFP_{i}' for i in range(1, 1025)]]
-
+    X_test=test_data.drop(["SMILES","mol","Compound"], axis=1) 
     # Initialize KNN Regressor
     params=knn_regression_best_model(data)
     n_neighbors = params['n_neighbors']
