@@ -5,15 +5,18 @@ import matplotlib.pyplot as plt
 import os #to save plots
 from openpyxl.workbook import Workbook
 import prediction_functions as pf
+import prepocessing as pre
 #load data
 data= pd.read_csv(os.path.join("Data_Set",'train.csv'))
 test_data=pd.read_csv(os.path.join("Data_Set","test.csv"))
+
 
 def excel_doc():
     
     # Export the subset data to an Excel file // might need to install Excel viewer extention in vs code 
     data.head(10).to_excel(os.path.join("Excel", 'table_of_data.xlsx'), index=False)  # Displaying the first 10 rows as an example
     test_data.head(10).to_excel(os.path.join("Excel", 'table_of_test_data.xlsx'), index=False)
+    data_preprocessed.head(10).to_excel(os.path.join("Excel", 'table_modified_data.xlsx'), index=False)
 
 def vis_compound_RT():
     # Filter the data for the first 25 drugs
@@ -32,6 +35,12 @@ def vis_compound_RT():
     plt.show()
 
 
-pf.linear_model(data,test_data)
-#pf.poisson_regression(data,test_data)
+#pf.linear_model(data,test_data)
+pre.dummies(data,'train_modified_data.csv')
+pre.dummies(test_data,'test_modified_data.csv')
+data_preprocessed= pd.read_csv(os.path.join("Data_Set",'train_modified_data.csv'))
+test_preprocessed= pd.read_csv(os.path.join("Data_Set",'test_modified_data.csv'))
+#excel_doc()
+pf.poisson_regression(data_preprocessed,test_preprocessed)
+print("done")
 #pf.knn_regression(data,test_data)
