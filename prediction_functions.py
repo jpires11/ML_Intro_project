@@ -1,11 +1,15 @@
 
-from sklearn.model_selection import train_test_split
+
 from sklearn.linear_model import LinearRegression
-from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split #to get best K neighbors
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error
 import numpy as np
 import pandas as pd
 import os
+import prepocessing as pre
+
 def creation_result_file(prediction, name_of_file):
     ids = range(1, len(prediction) + 1)  # Generate IDs starting from 1
     output_df = pd.DataFrame({'ID': ids, 'RT': prediction})
@@ -16,16 +20,11 @@ def creation_result_file(prediction, name_of_file):
     
 def linear_model(data,test_data):
     
-    
-    X = data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
-    y = data['RT']
     # Split the data into training and testing sets
     #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    # Set the training DataSet
-    X_train = data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
-    y_train = data['RT']
-    X_test = test_data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
     
+    #Setup the training and test sets
+    X_train,y_train,X_test= pre.create_sets(data,test_data)
     # Initialize and train the linear regression model
     linear_model = LinearRegression()
     linear_model.fit(X_train, y_train)
@@ -42,65 +41,41 @@ def linear_model(data,test_data):
 import statsmodels.api as sm
 
 def poisson_regression(data, test_data):
-    # Set the training DataSet
-    X_train = data.drop(["SMILES",'RT',"mol","Compound"], axis=1)  # Adjust columns to drop if needed
-
-    #X_train = data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
-    y_train = data['RT']
-    X_test=test_data.drop(["SMILES","mol","Compound"], axis=1) 
-    #X_test = test_data[[f'ECFP_{i}' for i in range(1, 1025)]]
     
+    #Setup the training and test sets
+    X_train,y_train,X_test= pre.create_sets(data,test_data)
     # Fit the Poisson regression model
-    print ("fitting")
     poisson_model = sm.GLM(y_train, X_train, family=sm.families.Poisson()).fit()
-
     # Predict 'y' for the test set using the trained model
-    print ("predicting")
     y_pred = poisson_model.predict(X_test)
-
-    # Save the prediction in a CSV file
+    # # Save the prediction in a CSV file
     creation_result_file(y_pred,'prediction_poisson_model.csv')
     
     
 #KNN model
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.model_selection import GridSearchCV
 def knn_regression_best_model(data):
     """
     finding the best number of neighbors to use in KNN regression and also
     returns the mse useful to chose a cv appropriate
-    
-
-    Args:
-        data (Dataset from pandas): the entire training set 
-
-    Returns:
-        int: best_parameter 
         
     """
-    # Set the training DataSet
-    #X = data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
-    #y = data['RT']
-    X = data.drop(["SMILES",'RT',"mol","Compound"], axis=1)  # Adjust columns to drop if needed
-
-    y = data['RT']
     # Split data into training and holdout validation sets
+    X = data.drop(["SMILES",'RT',"mol","Compound"], axis=1)  # Adjust columns to drop if needed
+    y = data['RT']
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
-
+    
     # Define the range of hyperparameters to test
     param_grid = {'n_neighbors': [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]}  
-
+    
     # Initialize KNN Regressor
     knn = KNeighborsRegressor()
-
+    
     # Perform grid search with cross-validation
     grid_search = GridSearchCV(knn, param_grid, cv=5, scoring='neg_mean_squared_error')
     grid_search.fit(X_train, y_train)
 
-    # Get the best hyperparameters
+    # Get the best hyperparameters and best model 
     best_params = grid_search.best_params_
-
-    # Use the best model to predict on the holdout validation set
     best_model = grid_search.best_estimator_
     y_pred = best_model.predict(X_val)
 
@@ -108,47 +83,25 @@ def knn_regression_best_model(data):
     mse = mean_squared_error(y_val, y_pred)
     print ("K is ",best_params['n_neighbors'])
     print()
-    print ("means squared error associated with the best number of neighbors ",mse)
-    return best_params
+    print ("MSE associated with the best number of neighbors ",mse)
+    return best_params ['n_neighbors']
 
 def knn_regression(data, test_data):
-    # Set the training DataSet
-    #X_train = data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
-   # y_train = data['RT']
-    #X_test = test_data[[f'ECFP_{i}' for i in range(1, 1025)]]
-    X_train = data.drop(["SMILES",'RT',"mol","Compound"], axis=1)  # Adjust columns to drop if needed
-    y_train = data['RT']
-    X_test=test_data.drop(["SMILES","mol","Compound"], axis=1) 
+
+    #Setup the training and test sets
+    X_train,y_train,X_test= pre.create_sets(data,test_data)
+    
     # Initialize KNN Regressor
-    params=knn_regression_best_model(data)
-    n_neighbors = params['n_neighbors']
-    knn = KNeighborsRegressor(n_neighbors)  # You can adjust the number of neighbors as needed
+    n_neighbors = knn_regression_best_model(data)
+    knn = KNeighborsRegressor(n_neighbors)  
 
-    # Fit the KNN model
+    # Fit the KNN model and Predict 'y' for the test set
     knn.fit(X_train, y_train)
-
-    # Predict 'y' for the test set using the trained model
     y_pred = knn.predict(X_test)
 
     # # Save the prediction in a CSV file
     creation_result_file(y_pred,'prediction_knn.csv')
     
-"""def logistic_model(data, test_data):
-    
-    # Set the training DataSet
-    X_train = data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
-    y_train = data['RT']
-    X_test = test_data[[f'ECFP_{i}' for i in range(1, 1025)]]
-    # Initialize Logistic Regression model
-    log_reg = LogisticRegression()
 
-    # Fit the model using ECFP inputs and the target 'y'
-    log_reg.fit(X_train, y_train)
-
-    # Predict 'y' for the test set using the trained model
-    y_pred = log_reg.predict(X_test)
-
-    # Save the predication in csv file
-    creation_result_file(y_pred,'prediction_logistic_model.csv')"""
     
     

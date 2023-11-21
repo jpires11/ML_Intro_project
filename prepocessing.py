@@ -1,6 +1,12 @@
 
 import pandas as pd
 
+def create_sets(data,test_data):
+    X_train = data.drop(["SMILES",'RT',"mol","Compound"], axis=1)  # Adjust columns to drop if needed
+    y_train = data['RT']
+    X_test=test_data.drop(["SMILES","mol","Compound"], axis=1)
+    return X_train,y_train,X_test
+
 def test_missing_values():
     """testing the data for missing values
     """
@@ -35,7 +41,6 @@ def dummies(data, name):
     data = data.drop(['Lab'], axis=1)
     # Concatenate the original DataFrame with the encoded columns
     data = pd.concat([data, encoded_cols_lab], axis=1)
-    data = pd.concat([data], axis=1)
     #data = pd.concat([data, encoded_cols_lab, encoded_cols_compound], axis=1)
     
     # Save the modified DataFrame to a CSV file
