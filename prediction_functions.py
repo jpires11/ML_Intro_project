@@ -43,18 +43,19 @@ import statsmodels.api as sm
 
 def poisson_regression(data, test_data):
     # Set the training DataSet
-    X_train = data.drop(["SMILES",'RT',"mol"], axis=1)  # Adjust columns to drop if needed
+    X_train = data.drop(["SMILES",'RT',"mol","Compound"], axis=1)  # Adjust columns to drop if needed
 
     #X_train = data[[f'ECFP_{i}' for i in range(1, 1025)]]  # Adjust column names accordingly
     y_train = data['RT']
-    X_test=test_data.drop(["SMILES","mol"], axis=1) 
+    X_test=test_data.drop(["SMILES","mol","Compound"], axis=1) 
     #X_test = test_data[[f'ECFP_{i}' for i in range(1, 1025)]]
     
-
     # Fit the Poisson regression model
+    print ("fitting")
     poisson_model = sm.GLM(y_train, X_train, family=sm.families.Poisson()).fit()
 
     # Predict 'y' for the test set using the trained model
+    print ("predicting")
     y_pred = poisson_model.predict(X_test)
 
     # Save the prediction in a CSV file
