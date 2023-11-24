@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 import os #to save plots
 from openpyxl.workbook import Workbook
 import prediction_functions as pf
+import prepocessing as pre
 #load data
-data= pd.read_csv('train.csv')
-test_data=pd.read_csv("test.csv")
+data= pd.read_csv('Data_set/train.csv')
+test_data=pd.read_csv("Data_set/test.csv")
 
 def excel_doc():
     
@@ -33,4 +34,5 @@ def vis_compound_RT():
 
 
     
-pf.linear_model(data,test_data)
+pre.preprocess_and_check_constants(data)
+pre.remove_highly_correlated(data)
