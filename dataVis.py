@@ -110,13 +110,3 @@ def RTvsCompoundbyLab(data, n, save = False):
     
     plt.show()
 
-#visualisation with mol
-"""
-sns.scatterplot(x='mol', y='RT', hue='Compound', data=filtered_data)
-plt.xlabel('Mol')
-plt.ylabel('Retention Time (RT)')
-plt.title('Retention Time vs Mol with Compound Variation (First 25 Drugs)')
-plt.xticks(rotation=90, fontsize=8)  # Rotate x-axis labels if needed
-plt.legend(title='SMILES', bbox_to_anchor=(1.05, 1), loc='upper left', prop={'size': 5})  # Adjust legend
-plt.tight_layout()
-"""

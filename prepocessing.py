@@ -1,5 +1,7 @@
 
 import pandas as pd
+import numpy as np
+import os
 
 def create_sets(data,test_data):
     X_train = data.drop(["SMILES",'RT',"mol","Compound"], axis=1)  # Adjust columns to drop if needed
@@ -47,8 +49,46 @@ def dummies(data, name):
     data.to_csv(os.path.join("Data_Set", name), index=False)
 
     
-"""test if there is constante values"""""
+#test if there is constante values
+    
+def preprocess_and_check_constants(data):
 
-"""test if variable are correlated """
+    # Step 1: Remove constant columns
+    non_constant_cols = data.columns[data.nunique() > 1]
+    data_no_const = data[non_constant_cols]
+
+    # Step 2: Check which columns were removed
+    constant_cols = data.columns.difference(non_constant_cols)
+
+    # Print columns that are deleted
+    print("Deleted Constant Columns:", constant_cols.tolist())
+
+    # Save the modified DataFrame to a new CSV file
+    data_no_const.to_csv(os.path.join("Data_set", 'preprocessed_data.csv'), index=False)
+
+    return data_no_const
+
+#test if variable are correlated 
+def remove_highly_correlated(data, threshold=0.9):
+    # Identify only numeric columns
+    numeric_cols = data.select_dtypes(include=np.number).columns.tolist()
+
+    # Calculate the correlation matrix for numeric columns
+    corr_matrix = data[numeric_cols].corr().abs()
+
+    # Create a mask to identify highly correlated features
+    upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+    to_drop = [column for column in upper.columns if any(upper[column] > threshold)]
+
+    # Print highly correlated columns before removal
+    print("Highly Correlated Columns:", to_drop)
+
+    # Drop the highly correlated columns
+    data_no_corr = data.drop(columns=to_drop)
+    data_no_corr.to_csv(os.path.join("Data_set", 'preprocessed_data.csv'), index=False)
+    return  to_drop
+
+
+
 
 """standartisation"""
