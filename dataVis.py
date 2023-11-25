@@ -7,7 +7,6 @@ import os #to save plots
 from openpyxl.workbook import Workbook
 
 
-
 def scatterRTvsCompound(data, n, save = False):
     '''
     Creates a scatter plot of the compound vs the retention time.

@@ -103,5 +103,43 @@ def knn_regression(data, test_data):
     creation_result_file(y_pred,'prediction_knn.csv')
     
 
+def rigid_regulation(data,test_data):
+    from sklearn.linear_model import Ridge
+    from sklearn.linear_model import RidgeCV
+    X_train,y_train,X_test= pre.create_sets(data,test_data)
     
+    alpha_values = [0.1, 1, 10, 100]  # Example alpha values to try
+
+    ridge_cv = RidgeCV(alphas=alpha_values, cv=5)  # Use 5-fold cross-validation
+    ridge_cv.fit(X_train, y_train)  # X is your input data, y is your target variable
+
+    best_alpha = ridge_cv.alpha_
+    print(f"Best alpha value: {best_alpha}")
+
+    # Once you have the best alpha value, you can fit the model with the entire dataset
+    ridge = Ridge(alpha=best_alpha)
+    ridge.fit(X_train, y_train)
+
+    # Make predictions on the test set
+    y_pred = ridge.predict(X_test)
+    # # Save the prediction in a CSV file
+    creation_result_file(y_pred,'prediction_L2.csv')
+    
+def lasso_regulation(data,test_data):
+    from sklearn.linear_model import Lasso, LassoCV
+    X_train,y_train,X_test= pre.create_sets(data,test_data)
+    alpha_values = [0.1, 1, 10, 100]  # Example alpha values to try
+
+    lasso_cv = LassoCV(alphas=alpha_values, cv=5)  # Use 5-fold cross-validation
+    lasso_cv.fit(X_train, y_train)  # X is your input data, y is your target variable
+
+    best_alpha = lasso_cv.alpha_
+    print(f"Best alpha value: {best_alpha}")
+
+    # Once you have the best alpha value, you can fit the model with the entire dataset
+    lasso = Lasso(alpha=best_alpha)
+    lasso.fit(X_train, y_train)
+    y_pred= lasso.predict(X_test)
+    # # Save the prediction in a CSV file
+    creation_result_file(y_pred,'prediction_L1.csv')
     

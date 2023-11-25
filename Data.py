@@ -39,6 +39,8 @@ dV.RTvsCompoundbyLab(data, n, save = True)"""
 pre.preprocess_and_check_constants(train_preprocessed)
 test_preprocessed=test_preprocessed.drop(columns=pre.remove_highly_correlated(train_preprocessed))
 train_clean = pd.read_csv(os.path.join("Data_Set",'preprocessed_data.csv'))
+#pf.knn_regression(train_clean,test_preprocessed)
 
+#pf.rigid_regulation(train_clean,test_preprocessed)
 
-pf.knn_regression(train_clean,test_preprocessed)
+pf.lasso_regulation(train_clean,test_preprocessed)
