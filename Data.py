@@ -43,4 +43,6 @@ train_clean = pd.read_csv(os.path.join("Data_Set",'preprocessed_data.csv'))
 
 #pf.rigid_regulation(train_clean,test_preprocessed)
 
-pf.lasso_regulation(train_clean,test_preprocessed)
+#pf.lasso_regulation(train_clean,test_preprocessed)
+
+pf.gradient_descent(train_clean,test_preprocessed, learning_rate=0.01, epochs=1000)
