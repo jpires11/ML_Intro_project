@@ -1,5 +1,7 @@
 import pandas as pd
-
+import numpy as np
+import prediction_functions as pf
+import prepocessing as pre
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os #to save plots
@@ -109,3 +111,61 @@ def RTvsCompoundbyLab(data, n, save = False):
     
     plt.show()
 
+def GD_parameters(train_clean, test_data, save = False):
+    X_,y_train,X_te= pre.create_sets(train_clean,test_data)
+    X_train, X_val, y_train, y_val = pf.train_test_split(train_clean, y_train, test_size=0.2, random_state=42)
+    train = pd.merge(X_train, y_train)
+
+    # Initialize a range of learning rates to try
+    learning_rates = [0.05, 0.01, 0.005]
+    epochs = [300, 400, 500, 600, 700]
+    # Dictionary to store results for each learning rate
+    results = {}
+    X_val = X_val.drop(['RT'], axis=1)
+
+
+    for lr in learning_rates:
+        # Train the model with the current learning rate
+        y_pred = pf.gradient_descent(train, X_val, lr, epochs=500)  # Adjust epochs as needed
+       
+        # Ensure that y_val has the correct shape
+        print(f"Shape of y_val: {X_val.shape}")
+
+        # Evaluate the model using mean squared error
+        mse = pf.mean_squared_error(y_val, y_pred)
+        
+        # Store the results for later analysis
+        results[lr] = mse
+    # Plot the learning rate vs. mean squared error
+    plt.plot(list(results.keys()), list(results.values()), marker='o')
+    plt.xscale('log')  # Use a log scale for better visualization
+    plt.xlabel('Learning Rate')
+    plt.ylabel('Mean Squared Error')
+    plt.title('Learning Rate Tuning')
+    if (save == True):
+        plt.savefig(os.path.join("visualisation", 'GradientDescentLRParameters.jpg'))
+    plt.show()
+
+    results = {}
+    for ep in epochs:
+        # Train the model with the current learning rate
+        y_pred = pf.gradient_descent(train, X_val, 0.01, epochs=ep)  # Adjust epochs as needed
+        
+        # Ensure that y_val has the correct shape
+        print(f"Shape of y_val: {X_val.shape}")
+
+        # Evaluate the model using mean squared error
+        mse = pf.mean_squared_error(y_val, y_pred)
+        
+        # Store the results for later analysis
+        results[ep] = mse
+
+    # Plot the epoch vs. mean squared error
+    plt.plot(list(results.keys()), list(results.values()), marker='o')
+    plt.xscale('log')  # Use a log scale for better visualization
+    plt.xlabel('epochs')
+    plt.ylabel('Mean Squared Error')
+    plt.title('Epoch Tuning')
+    if (save == True):
+        plt.savefig(os.path.join("visualisation", 'GradientDescentEPParameters.jpg'))
+    plt.show()
