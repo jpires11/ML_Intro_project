@@ -87,40 +87,6 @@ def knn_regression_best_model(data):
     print ("MSE associated with the best number of neighbors ",mse)
     return best_params ['n_neighbors']
 
-def DG_regression_best_model(data, train_clean,test_preprocessed):
-    """
-    finding the best number of neighbors to use in KNN regression and also
-    returns the mse useful to chose a cv appropriate
-        
-    """
-    # Split data into training and holdout validation sets
-    X = data.drop(["SMILES",'RT',"mol","Compound"], axis=1)  # Adjust columns to drop if needed
-    y = data['RT']
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
-    
-    # Define the range of hyperparameters to test
-    param_grid = {
-    'learning_rate': [0.1, 0.01, 0.001],
-    'epochs': [50, 100, 200]
-    }
-    # Initialize KNN Regressor
-    GDmodel = gradient_descent(train_clean,test_preprocessed)
-    
-    # Perform grid search with cross-validation
-    grid_search = GridSearchCV(GDmodel, param_grid, cv=5, scoring='neg_mean_squared_error')
-    grid_search.fit(X_train, y_train)
-
-    # Get the best hyperparameters and best model 
-    best_params = grid_search.best_params_
-    best_model = grid_search.best_estimator_
-    y_pred = best_model.predict(X_val)
-
-    # Evaluate the best model on the holdout validation set using MSE
-    mse = mean_squared_error(y_val, y_pred)
-    print ("LR is ",best_params['n_neighbors'])
-    print("Best Parameters: ", grid_search.best_params_)
-    print ("MSE associated with the best LR ",mse)
-    return best_params ['learning_rate']
 
 def knn_regression(data, test_data):
 
@@ -178,45 +144,7 @@ def lasso_regulation(data,test_data):
     y_pred= lasso.predict(X_test)
     # # Save the prediction in a CSV file
     creation_result_file(y_pred,'prediction_L1.csv')
-"""
-def initialize(dim):
-    b=random.random()
-    theta=np.random.rand(dim)
-    return b,theta
 
-def predict_Y(b, theta, X):
-    return b + np.dot(X,theta)
-
-def gradient_descent(X, y, learning_rate, num_iterations, loss_fct, fct_gradient, sg=False):
-    n, theta= initialize()
-    gd_iterations_df = pd.DataFrame(columns=['RT'])
-    result_idx=0
-
-    for each_iter in range(num_iterations):
-        if sg == True:
-            X1, y1 = select_indices(X, y)
-        else:
-            X1, y1 = X, y
-        
-        y_hat = predict_Y(c, theta,X1)
-        b, theta= fct_gradient(X1,y1,y_hat,b,theta,learning_rate)
-        gd_iterations_df.loc[result_idx]=[loss_fct(y1, y_hat)]
-        result_idx+=1
-
-    return gd_iterations_df, b, theta
-
-def lin_reg_loss(y, y_hat):
-    return np.mean((y-y_hat)**2)
-def lin_reg_gradient(x,y,y_hat,b,theta,learning_rate):
-    db=(np.sum(y_hat-y)*2)/len(y)
-    dw=(np.dot((y_hat-y),x)*2)/len(y)
-    b_1=b-learning_rate*db
-    theta_1=theta-learning_rate*dw
-    return b_1, theta_1
-
-"""
-
-import torch
 
 import numpy as np
 from sklearn.model_selection import train_test_split
