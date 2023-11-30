@@ -36,7 +36,7 @@ dV.RTvsCDDD(dV.mergeRT_CDDD(data, cddd, 100))
 dV.HeatMap(dV.mergeRT_CDDD(data, cddd))
 dV.RTvsCompoundbyLab(data, n, save = True)"""
 
-pre.preprocess_and_check_constants(train_preprocessed)
+#pre.preprocess_and_check_constants(train_preprocessed)
 test_preprocessed=test_preprocessed.drop(columns=pre.remove_highly_correlated(train_preprocessed))
 train_clean = pd.read_csv(os.path.join("Data_Set",'preprocessed_data.csv'))
 #pf.knn_regression(train_clean,test_preprocessed)
@@ -47,7 +47,7 @@ train_clean = pd.read_csv(os.path.join("Data_Set",'preprocessed_data.csv'))
 
 #pf.DG_regression_best_model(data, train_clean,test_preprocessed)
 
-dV.GD_parameters(train_clean, test_data, save = True)
-pf.gradient_descent(train_clean,test_preprocessed, learning_rate=0.05, epochs=400)
+#dV.GD_parameters(train_clean, test_data, save = True)
+#pf.gradient_descent(train_clean,test_preprocessed, learning_rate=0.05, epochs=400)
 
 pf.artificial_neurons(train_clean,test_preprocessed)

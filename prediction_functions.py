@@ -213,6 +213,7 @@ def artificial_neurons(data,test_data):
     # Standardize the input features
     standardizer = StandardScaler()
     X_standardized = standardizer.fit_transform(X_train)
+    Y_standardized = standardizer.fit_transform(X_test)
     X_tensor = torch.tensor(X_standardized, dtype=torch.float32)
     y_tensor = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1)
     #print(X_train.shape())
@@ -220,7 +221,7 @@ def artificial_neurons(data,test_data):
     print(X_tensor.size()) 
     # Define the neural network model using PyTorch
     class NN_model(nn.Module):
-        def __init__(self, input_size=1040, n_neurons=32, dropout_rate=0.5):
+        def __init__(self, input_size=1040, n_neurons=8, dropout_rate=0.5):
             super().__init__()
             self.layers = nn.Sequential(
                 nn.Linear(input_size, n_neurons),
@@ -237,20 +238,23 @@ def artificial_neurons(data,test_data):
         NN_model,
         criterion=nn.MSELoss,
         optimizer=optim.Adam,
-        max_epochs=500,#1000
-        batch_size=32,
+        max_epochs=400,#1000
+        batch_size=64,#32
         verbose=False
     )
 
     # Define the parameter grid for hyperparameter tuning
     param_grid = {
-        'module__n_neurons': [32, 64, 128],
-        'module__dropout_rate': [0, 0.1, 0.2]
+        'module__n_neurons': [8],
+        'module__dropout_rate': [0, 0.1]
     }
 
     # Perform GridSearchCV for hyperparameter tuning
-    grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=5)
+    print("gridsearchCV")
+    grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=3)
+    print ("fitting grid")
     grid_result = grid_search.fit(X_tensor, y_tensor)
+    print ("fitting done")
 
     print("Best MSE: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
 
@@ -258,9 +262,18 @@ def artificial_neurons(data,test_data):
     mach2 = grid_result.best_estimator_
 
     # Fit the best model to the data
+    print ("fitting model")
     mach2.fit(X_tensor, y_tensor)
 
     # Make predictions
-    y_pred = mach2.predict(torch.tensor(X_test, dtype=torch.float32))
+    print("setting tensor")
+    # Convert test data to tensor or numpy array
+    X_test_tensor = torch.tensor(X_test.values, dtype=torch.float32)  # Assuming test_data is a DataFrame
+    print("predicting")
+    y_pred_torch = mach2.predict(X_test_tensor)
+    #print (y_pred_torch.shape())
+    print(type(y_pred_torch))
+    
     # Save predictions to a file
-    creation_result_file(y_pred, 'artificial_neurons.csv')
+    print("creating file")
+    creation_result_file(y_pred_torch, 'artificial_neurons.csv')
