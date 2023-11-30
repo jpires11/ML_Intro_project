@@ -124,6 +124,7 @@ def rigid_regulation(data,test_data):
 
     # Make predictions on the test set
     y_pred = ridge.predict(X_test)
+    print (y_pred)
     # # Save the prediction in a CSV file
     creation_result_file(y_pred,'prediction_L2.csv')
     
@@ -238,15 +239,15 @@ def artificial_neurons(data,test_data):
         NN_model,
         criterion=nn.MSELoss,
         optimizer=optim.Adam,
-        max_epochs=400,#1000
-        batch_size=64,#32
+        max_epochs=800,#1000
+        batch_size=32,#32
         verbose=False
     )
 
     # Define the parameter grid for hyperparameter tuning
     param_grid = {
-        'module__n_neurons': [8],
-        'module__dropout_rate': [0, 0.1]
+        'module__n_neurons': [8,16,32],
+        'module__dropout_rate': [0, 0.1,0.2,0.3]
     }
 
     # Perform GridSearchCV for hyperparameter tuning
@@ -271,9 +272,7 @@ def artificial_neurons(data,test_data):
     X_test_tensor = torch.tensor(X_test.values, dtype=torch.float32)  # Assuming test_data is a DataFrame
     print("predicting")
     y_pred_torch = mach2.predict(X_test_tensor)
-    #print (y_pred_torch.shape())
-    print(type(y_pred_torch))
-    
+    y_pred= np.squeeze(y_pred_torch)
     # Save predictions to a file
     print("creating file")
-    creation_result_file(y_pred_torch, 'artificial_neurons.csv')
+    creation_result_file(y_pred, 'artificial_neurons.csv')

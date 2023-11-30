@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import os #to save plots
 from openpyxl.workbook import Workbook
 import prediction_functions as pf
-import prepocessing as pre
+import prepocessing as pre 
 
 #load original data
 data= pd.read_csv(os.path.join("Data_set",'train.csv'))
@@ -51,3 +51,4 @@ train_clean = pd.read_csv(os.path.join("Data_Set",'preprocessed_data.csv'))
 #pf.gradient_descent(train_clean,test_preprocessed, learning_rate=0.05, epochs=400)
 
 pf.artificial_neurons(train_clean,test_preprocessed)
+

@@ -89,6 +89,3 @@ def remove_highly_correlated(data, threshold=0.9):
     return  to_drop
 
 
-
-
-"""standartisation"""
