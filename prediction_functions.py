@@ -111,7 +111,6 @@ def rigid_regulation(data,test_data):
     X_train,y_train,X_test= pre.create_sets(data,test_data)
     
     alpha_values = [0.1, 1, 10, 100]  # Example alpha values to try
-
     ridge_cv = RidgeCV(alphas=alpha_values, cv=5)  # Use 5-fold cross-validation
     ridge_cv.fit(X_train, y_train)  # X is your input data, y is your target variable
 
@@ -131,7 +130,7 @@ def rigid_regulation(data,test_data):
 def lasso_regulation(data,test_data):
     from sklearn.linear_model import Lasso, LassoCV
     X_train,y_train,X_test= pre.create_sets(data,test_data)
-    alpha_values = [0.1, 1, 10, 100]  # Example alpha values to try
+    alpha_values = [0.1, 1, 5,10,15,20,25,50, 100]  # Example alpha values to try
 
     lasso_cv = LassoCV(alphas=alpha_values, cv=5)  # Use 5-fold cross-validation
     lasso_cv.fit(X_train, y_train)  # X is your input data, y is your target variable
@@ -276,3 +275,39 @@ def artificial_neurons(data,test_data):
     # Save predictions to a file
     print("creating file")
     creation_result_file(y_pred, 'artificial_neurons.csv')
+    
+def forest(data,test_data):
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.model_selection import GridSearchCV
+    model = RandomForestRegressor()
+    X_train,y_train,X_test= pre.create_sets(data,test_data)
+
+    param_grid = {
+    'n_estimators': [100, 200, 300],  # Number of trees in the forest
+    'max_depth': [None, 5, 10, 15],  # Maximum depth of the tree
+    }
+    
+    """param_grid = {
+    'n_estimators': [100, 200, 300],  # Number of trees in the forest
+    'max_depth': [None, 5, 10, 15],  # Maximum depth of the tree
+    'min_samples_split': [2, 5, 10],  # Minimum number of samples required to split a node
+    'min_samples_leaf': [1, 2, 4],  # Minimum number of samples required at each leaf node
+    'max_features': ['auto', 'sqrt', 'log2'],  # Number of features to consider at every split
+    'bootstrap': [True, False],  # Whether bootstrap samples are used when building trees
+    }"""
+
+    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=10, n_jobs=-1, scoring='r2')
+    print ("fitting the grid")
+    grid_search.fit(X_train, y_train)
+    print("Best MSE: %f using %s" % (grid_search.best_score_, grid_search.best_params_))
+    
+    best_model = grid_search.best_estimator_
+    print("predicting")
+    y_pred = best_model.predict(X_test)
+    # Save predictions to a file
+    print("creating file")
+    creation_result_file(y_pred, 'random_forest.csv')
+
+
+
+
