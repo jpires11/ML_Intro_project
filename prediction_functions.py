@@ -12,6 +12,7 @@ import os
 import prepocessing as pre
 
 def creation_result_file(prediction, name_of_file):
+    prediction[prediction < 0] = 0
     ids = range(1, len(prediction) + 1)  # Generate IDs starting from 1
     output_df = pd.DataFrame({'ID': ids, 'RT': prediction})
 
