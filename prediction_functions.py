@@ -21,9 +21,7 @@ def creation_result_file(prediction, name_of_file):
     
 def linear_model(data,test_data):
     
-    # Split the data into training and testing sets
-    #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    
+    np.random.seed(42)
     #Setup the training and test sets
     X_train,y_train,X_test= pre.create_sets(data,test_data)
     # Initialize and train the linear regression model
@@ -42,7 +40,7 @@ def linear_model(data,test_data):
 import statsmodels.api as sm
 
 def poisson_regression(data, test_data):
-    
+    np.random.seed(42)
     #Setup the training and test sets
     X_train,y_train,X_test= pre.create_sets(data,test_data)
     # Fit the Poisson regression model
@@ -60,6 +58,7 @@ def knn_regression_best_model(data):
     returns the mse useful to chose a cv appropriate
         
     """
+    np.random.seed(42)
     # Split data into training and holdout validation sets
     X = data.drop(["SMILES",'RT',"mol","Compound"], axis=1)  # Adjust columns to drop if needed
     y = data['RT']
@@ -89,7 +88,7 @@ def knn_regression_best_model(data):
 
 
 def knn_regression(data, test_data):
-
+    np.random.seed(42)
     #Setup the training and test sets
     X_train,y_train,X_test= pre.create_sets(data,test_data)
     
@@ -108,14 +107,14 @@ def knn_regression(data, test_data):
 def rigid_regulation(data,test_data):
     from sklearn.linear_model import Ridge
     from sklearn.linear_model import RidgeCV
+    np.random.seed(42)
     X_train,y_train,X_test= pre.create_sets(data,test_data)
     
     alpha_values = [0.1, 1, 10, 100]  # Example alpha values to try
     ridge_cv = RidgeCV(alphas=alpha_values, cv=5)  # Use 5-fold cross-validation
     ridge_cv.fit(X_train, y_train)  # X is your input data, y is your target variable
-
+    print("Best MSE: %f using %s" % (ridge_cv.best_score_, ridge_cv.alpha_))
     best_alpha = ridge_cv.alpha_
-    print(f"Best alpha value: {best_alpha}")
 
     # Once you have the best alpha value, you can fit the model with the entire dataset
     ridge = Ridge(alpha=best_alpha)
@@ -128,7 +127,9 @@ def rigid_regulation(data,test_data):
     creation_result_file(y_pred,'prediction_L2.csv')
     
 def lasso_regulation(data,test_data):
+    # Set seed for reproducibility
     from sklearn.linear_model import Lasso, LassoCV
+    np.random.seed(42)
     X_train,y_train,X_test= pre.create_sets(data,test_data)
     alpha_values = [0.1, 1, 5,10,15,20,25,50, 100]  # Example alpha values to try
 
@@ -164,6 +165,8 @@ def gradient_descent(data, test_data, learning_rate=0.01, epochs=1000):
     Returns:
     - weights: Learned weights for the linear regression model
     """
+# Set seed for reproducibility
+    np.random.seed(42)# Set seed for reproducibility
 
     X_train,y_train,X_test= pre.create_sets(data,test_data)
     
@@ -208,6 +211,15 @@ def artificial_neurons(data,test_data):
     import numpy as np
     from sklearn.preprocessing import StandardScaler
     from skorch import NeuralNetRegressor #sklearn + pytorch
+    
+    # Set seed for Torch
+    torch.manual_seed(42)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(42)
+
+    # Set seed for NumPy
+    np.random.seed(42)
+    random.seed(42)
     X_train,y_train,X_test= pre.create_sets(data,test_data)
 
     # Standardize the input features
@@ -238,20 +250,20 @@ def artificial_neurons(data,test_data):
         NN_model,
         criterion=nn.MSELoss,
         optimizer=optim.Adam,
-        max_epochs=800,#1000
-        batch_size=32,#32
+        max_epochs=100,#1000
+        batch_size=128,#32
         verbose=False
     )
 
     # Define the parameter grid for hyperparameter tuning
     param_grid = {
-        'module__n_neurons': [8,16,32],
-        'module__dropout_rate': [0, 0.1,0.2,0.3]
+        'module__n_neurons': [8,16,32,64],
+        'module__dropout_rate': [0,0.2,0.4]
     }
 
     # Perform GridSearchCV for hyperparameter tuning
     print("gridsearchCV")
-    grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=3)
+    grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=3,n_jobs=-1,scoring="neg_mean_squared_error")
     print ("fitting grid")
     grid_result = grid_search.fit(X_tensor, y_tensor)
     print ("fitting done")
@@ -279,7 +291,9 @@ def artificial_neurons(data,test_data):
 def forest(data,test_data):
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.model_selection import GridSearchCV
-    model = RandomForestRegressor()
+    # Set seed for reproducibility
+    np.random.seed(42)
+    model = RandomForestRegressor(random_state=42)
     X_train,y_train,X_test= pre.create_sets(data,test_data)
 
     param_grid = {
@@ -296,7 +310,7 @@ def forest(data,test_data):
     'bootstrap': [True, False],  # Whether bootstrap samples are used when building trees
     }"""
 
-    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=10, n_jobs=-1, scoring='r2')
+    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1, scoring='neg_mean_squared_error')
     print ("fitting the grid")
     grid_search.fit(X_train, y_train)
     print("Best MSE: %f using %s" % (grid_search.best_score_, grid_search.best_params_))

@@ -50,6 +50,6 @@ train_clean = pd.read_csv(os.path.join("Data_Set",'preprocessed_data.csv'))
 #dV.GD_parameters(train_clean, test_data, save = True)
 #pf.gradient_descent(train_clean,test_preprocessed, learning_rate=0.05, epochs=400)
 
-#pf.artificial_neurons(train_clean,test_preprocessed)
+pf.artificial_neurons(train_clean,test_preprocessed)
 
-pf.forest(train_clean,test_preprocessed)
+#pf.forest(train_clean,test_preprocessed)
