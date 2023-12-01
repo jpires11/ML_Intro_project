@@ -110,11 +110,11 @@ def rigid_regulation(data,test_data):
     from sklearn.linear_model import Ridge
     from sklearn.linear_model import RidgeCV
     X_train,y_train,X_test= pre.create_sets(data,test_data)
-    
+    print(X_train)
     alpha_values = [0.1, 1, 10, 100]  # Example alpha values to try
     ridge_cv = RidgeCV(alphas=alpha_values, cv=5)  # Use 5-fold cross-validation
     ridge_cv.fit(X_train, y_train)  # X is your input data, y is your target variable
-
+    print("Best MSE: %f using %s" % (ridge_cv.best_score_, ridge_cv.alpha_))
     best_alpha = ridge_cv.alpha_
     print(f"Best alpha value: {best_alpha}")
 

@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import prediction_functions as pf
 import prepocessing as pre
+import prepocessing as pre
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os #to save plots
@@ -32,13 +33,7 @@ def scatterRTvsCompound(data, n, save = False):
         plt.savefig(os.path.join("visualisation", 'scatter_plot.jpg'))
     plt.show()
 
-def mergeRT_CDDD(data, cddd, n=512):
-    #Assuming 'data' is your DataFrame
-    merged_data = pd.merge(data, cddd, on='SMILES')
-    # Select columns of interest
-    selected_columns = ['RT'] + [f'cddd_{i}' for i in range(1, n)]
-    subset_data = merged_data[selected_columns]
-    return subset_data
+
 def RTvsCDDD(subset_data, save = False):
     '''
     subset_data is a dataframe with RT and cddd only (obtainable with the mergeRT_CDDD function)

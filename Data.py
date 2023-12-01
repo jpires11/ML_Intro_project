@@ -11,15 +11,8 @@ from openpyxl.workbook import Workbook
 import prediction_functions as pf
 import prepocessing as pre 
 
-#load original data
-data= pd.read_csv(os.path.join("Data_set",'train.csv'))
-cddd = pd.read_csv('cddd.csv')
-test_data=pd.read_csv(os.path.join("Data_set","test.csv"))
-#process data and load it
-pre.dummies(data,'train_modified_data.csv')
-pre.dummies(test_data,'test_modified_data.csv')
-train_preprocessed= pd.read_csv(os.path.join("Data_Set",'train_modified_data.csv'))
-test_preprocessed= pd.read_csv(os.path.join("Data_Set",'test_modified_data.csv'))
+
+data, test_data, train_preprocessed, test_preprocessed = pre.preprocess()
 
 
 def excel_doc():
@@ -34,7 +27,7 @@ def excel_doc():
 
 dV.scatterRTvsCompound(data, n)
 dV.RTvsCDDD(dV.mergeRT_CDDD(data, cddd, 100))
-dV.HeatMap(dV.mergeRT_CDDD(data, cddd))
+dV.HeatMap(pre.mergeRT_CDDD(data, cddd))
 dV.RTvsCompoundbyLab(data, n, save = True)"""
 
 #pre.preprocess_and_check_constants(train_preprocessed)
