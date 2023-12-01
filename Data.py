@@ -13,6 +13,7 @@ import prepocessing as pre
 
 #load original data
 data= pd.read_csv(os.path.join("Data_set",'train.csv'))
+cddd = pd.read_csv('cddd.csv')
 test_data=pd.read_csv(os.path.join("Data_set","test.csv"))
 #process data and load it
 pre.dummies(data,'train_modified_data.csv')
@@ -30,7 +31,7 @@ def excel_doc():
     test_preprocessed.head(10).to_excel(os.path.join("Excel", 'table_processed_test.xlsx'), index=False)
 
 """n =25
-cddd = pd.read_csv('cddd.csv')
+
 dV.scatterRTvsCompound(data, n)
 dV.RTvsCDDD(dV.mergeRT_CDDD(data, cddd, 100))
 dV.HeatMap(dV.mergeRT_CDDD(data, cddd))
