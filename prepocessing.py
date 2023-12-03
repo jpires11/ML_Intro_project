@@ -3,10 +3,17 @@ import pandas as pd
 import numpy as np
 import os
 
-def create_sets(data,test_data):
+def create_sets(data,test_data,no_ECFP=False):
     X_train = data.drop(["SMILES",'RT',"mol","Compound"], axis=1)  # Adjust columns to drop if needed
     y_train = data['RT']
     X_test=test_data.drop(["SMILES","mol","Compound"], axis=1)
+    #if the set containes ECFP and CDDD could give the chose to have only CDDD
+    """ if no_ECFP==True:
+         columns_to_drop_train = [col for col in X_train.columns if col.startswith('ECFP_')]
+         columns_to_drop_test = [col for col in X_test.columns if col.startswith('ECFP_')]
+         X_train = X_train.drop(columns=columns_to_drop_train, inplace=True) 
+         X_test=X_test.drop(columns=columns_to_drop_test, inplace=True) """
+         
     return X_train,y_train,X_test
 
 def test_missing_values():
@@ -105,18 +112,23 @@ def mergeRT_CDDD(data, cddd, n=512, onlyRT = False, RT = True):
 def preprocess(CDDD = False):
     data= pd.read_csv(os.path.join("Data_set",'train.csv'))
     test_data=pd.read_csv(os.path.join("Data_set","test.csv"))
-    cddd = pd.read_csv(os.path.join("Data_set",'cddd.csv'))
+    
 
     if CDDD == True:
+        cddd = pd.read_csv(os.path.join("Data_set",'cddd.csv'))
         data = mergeRT_CDDD(data, cddd)
         data = data.dropna()
         test_data = mergeRT_CDDD(test_data, cddd, RT = False)
         test_data = test_data.dropna()
-    #process data and load it
-    dummies(data,'train_modified_data.csv')
-    dummies(test_data,'test_modified_data.csv')
-
-    train_preprocessed= pd.read_csv(os.path.join("Data_Set",'train_modified_data.csv'))
-    test_preprocessed= pd.read_csv(os.path.join("Data_Set",'test_modified_data.csv'))
+        #process data and load it
+        dummies(data,'train_modified_data_CDDD.csv')
+        dummies(test_data,'test_modified_data_CDDD.csv')
+        train_preprocessed= pd.read_csv(os.path.join("Data_Set",'train_modified_data_CDDD.csv'))
+        test_preprocessed= pd.read_csv(os.path.join("Data_Set",'test_modified_data_CDDD.csv'))
+    else:
+        dummies(data,'train_modified_data.csv')
+        dummies(test_data,'test_modified_data.csv')
+        train_preprocessed= pd.read_csv(os.path.join("Data_Set",'train_modified_data.csv'))
+        test_preprocessed= pd.read_csv(os.path.join("Data_Set",'test_modified_data.csv'))
 
     return data, test_data, train_preprocessed, test_preprocessed

@@ -10,6 +10,14 @@ import os #to save plots
 from openpyxl.workbook import Workbook
 
 
+def excel_doc(data,test_data, train_preprocessed, test_preprocessed,name_train_processed="train_processed.xlsx", name_test_processed="test_processed.xlsx"):
+    
+    # Export the subset data to an Excel file [Only the first 10 rows] // might need to install Excel viewer extention in vs code 
+    data.head(10).to_excel(os.path.join("Excel", 'table_of_data.xlsx'), index=False)  
+    test_data.head(10).to_excel(os.path.join("Excel", 'table_of_test_data.xlsx'), index=False)
+    train_preprocessed.head(10).to_excel(os.path.join("Excel", name_train_processed), index=False)
+    test_preprocessed.head(10).to_excel(os.path.join("Excel", name_test_processed), index=False)
+    
 def scatterRTvsCompound(data, n, save = False):
     '''
     Creates a scatter plot of the compound vs the retention time.
