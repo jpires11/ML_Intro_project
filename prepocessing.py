@@ -95,7 +95,7 @@ def remove_highly_correlated(data, threshold=0.9):
     data_no_corr.to_csv(os.path.join("Data_set", 'preprocessed_data.csv'), index=False)
     return  to_drop
 
-def mergeRT_CDDD(data, cddd, n=512, onlyRT = False, RT = True):
+def mergeRT_CDDD(data, cddd, n=513, onlyRT = False, RT = True, ECFP = False):
     #Assuming 'data' is your DataFrame
     merged_data = pd.merge(data, cddd, on='SMILES')
     # Select columns of interest
@@ -106,20 +106,22 @@ def mergeRT_CDDD(data, cddd, n=512, onlyRT = False, RT = True):
             selected_columns = ['RT'] + ['SMILES'] + ['mol'] + ['Compound'] + ["Lab"] + [f'cddd_{i}' for i in range(1, n)]
     else:
         selected_columns = ['SMILES'] + ['mol'] + ['Compound'] + ["Lab"] + [f'cddd_{i}' for i in range(1, n)]
+    if ECFP == True:
+        selected_columns += [f'ECFP_{i}' for i in range(1, 1025)]
     subset_data = merged_data[selected_columns]
     return subset_data
 
-def preprocess(CDDD = False):
+def preprocess(CDDD = False, ECFP = True):
     data= pd.read_csv(os.path.join("Data_set",'train.csv'))
     test_data=pd.read_csv(os.path.join("Data_set","test.csv"))
     
 
     if CDDD == True:
         cddd = pd.read_csv(os.path.join("Data_set",'cddd.csv'))
-        data = mergeRT_CDDD(data, cddd)
-        data = data.dropna()
-        test_data = mergeRT_CDDD(test_data, cddd, RT = False)
-        test_data = test_data.dropna()
+        data = mergeRT_CDDD(data, cddd, ECFP = ECFP)
+        #data = data.dropna()
+        test_data = mergeRT_CDDD(test_data, cddd, RT = False, ECFP = ECFP)
+        #test_data = test_data.dropna()
         #process data and load it
         dummies(data,'train_modified_data_CDDD.csv')
         dummies(test_data,'test_modified_data_CDDD.csv')

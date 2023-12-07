@@ -16,7 +16,7 @@ import prepocessing as pre
 #data, test_data, train_preprocessed, test_preprocessed = pre.preprocess()
 #dV.excel_doc(data,test_data, train_preprocessed, test_preprocessed)
 
-data, test_data, train_preprocessed, test_preprocessed = pre.preprocess(True)
+data, test_data, train_preprocessed, test_preprocessed = pre.preprocess(True, False)
 #dV.excel_doc(data,test_data, train_preprocessed, test_preprocessed,"train_processed_with_CDDD.xlsx","test_processed_with_CDDD.xlsx")
 
 """n =25
@@ -33,7 +33,7 @@ dV.RTvsCompoundbyLab(data, n, save = True)"""
 
 #pf.rigid_regulation(train_clean,test_preprocessed)
 
-#pf.lasso_regulation(train_clean,test_preprocessed)
+pf.lasso_regulation(train_preprocessed,test_preprocessed)
 
 #pf.DG_regression_best_model(data, train_clean,test_preprocessed)
 
@@ -42,4 +42,4 @@ dV.RTvsCompoundbyLab(data, n, save = True)"""
 
 #pf.artificial_neurons(train_clean,test_preprocessed)
 
-pf.forest(train_preprocessed,test_preprocessed)
+#pf.forest(train_preprocessed,test_preprocessed)
