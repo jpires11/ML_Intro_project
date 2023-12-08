@@ -282,16 +282,16 @@ def artificial_neurons(data,test_data):
         max_epochs=400,
         batch_size=32,
         callbacks=[EarlyStopping(patience=15)],  # Adjust patience 
-        verbose=True
+        
     )
 
     # Define the parameter grid for hyperparameter tuning
     param_grid = {
-        'module__n_neurons': [8, 16,32],
+        'module__n_neurons': [10,50,100],
         'module__dropout_rate':[0,0.3,0.5],
-        'module__activation': [func for name, func in activation_functions],
+        #'module__activation': [func for name, func in activation_functions],
         #'optimizer': [optim.Adam, optim.SGD, optim.RMSprop],
-        #'optimizer__lr': [0.001, 0.01,0.1],
+        'optimizer__lr': [0.001, 0.01,0.1],
         #'module__l1_strength': [0.001, 0.01],
         #'optimizer__weight_decay': [0.0001, 0.001, 0.01], # L2 strength
         #'max_epochs': [ 300,400] 
@@ -301,7 +301,7 @@ def artificial_neurons(data,test_data):
     # Perform GridSearchCV for hyperparameter tuning
     print("gridsearchCV")
     np.random.seed(42)
-    grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=10,n_jobs=-1,scoring="neg_mean_squared_error")
+    grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=10,n_jobs=-1,scoring="neg_mean_squared_error",verbose=True)
     print ("fitting grid")
     grid_result = grid_search.fit(X_tensor, y_tensor)
     print ("fitting done")
@@ -335,8 +335,8 @@ def forest(data,test_data):
     X_train,y_train,X_test= pre.create_sets(data,test_data)
 
     param_grid = {
-    'n_estimators': [ 200, 300],  # Number of trees in the forest
-    'max_depth': [None, 5, 10],# Maximum depth of the tree
+    'n_estimators': [200,300,400],  # Number of trees in the forest
+    'max_depth': [None,5,10]# Maximum depth of the tree
 
     #'min_samples_split': [2, 5, 10],  # Test different values for min_samples_split
     #'min_samples_leaf': [1, 2, 4]  # Test different values for min_samples_leaf
@@ -344,7 +344,7 @@ def forest(data,test_data):
     
  
 
-    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1, scoring='neg_mean_squared_error',verbose =True)
+    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1, scoring='r2')
     print ("fitting the grid")
     grid_search.fit(X_train, y_train)
     print("Best MSE: %f using %s" % (grid_search.best_score_, grid_search.best_params_))
