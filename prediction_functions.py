@@ -282,6 +282,7 @@ def artificial_neurons(data,test_data):
         max_epochs=400,
         batch_size=32,
         callbacks=[EarlyStopping(patience=15)],  # Adjust patience 
+        verbose=False
         
     )
 
