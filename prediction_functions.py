@@ -212,15 +212,12 @@ def artificial_neurons(data,test_data):
     import numpy as np
     from sklearn.preprocessing import StandardScaler
     from skorch import NeuralNetRegressor #sklearn + pytorch
-    
-    # Set seed for Torch
+
+    # Set seed for NumPy
     torch.manual_seed(42)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(42)
-
-    # Set seed for NumPy
     np.random.seed(42)
-    random.seed(42)
     X_train,y_train,X_test= pre.create_sets(data,test_data)
 
     # Standardize the input features
@@ -232,39 +229,79 @@ def artificial_neurons(data,test_data):
     #print(X_train.shape())
     print ("")
     print(X_tensor.size()) 
+   
+   
+    activation_functions = [
+    ('ReLU', nn.ReLU()),
+    ('LeakyReLU', nn.LeakyReLU()),
+    ('Tanh', nn.Tanh()),
+    ('Sigmoid', nn.Sigmoid()),
+    # Add more activation functions here
+    ]
+
     # Define the neural network model using PyTorch
     class NN_model(nn.Module):
-        def __init__(self, input_size=1040, n_neurons=8, dropout_rate=0.5):
+        def __init__(self, input_size=X_standardized.shape[1], n_neurons=8, dropout_rate=0.5,activation=nn.ReLU()):#, l1_strength=0.001):#, l2_strength=0.0001):
             super().__init__()
             self.layers = nn.Sequential(
                 nn.Linear(input_size, n_neurons),
                 nn.ReLU(),
                 nn.Dropout(p=dropout_rate),
+                nn.Linear(n_neurons, n_neurons),  # Second hidden layer
+                activation,
+                nn.Dropout(p=dropout_rate),
                 nn.Linear(n_neurons, 1)
             )
+            #self.l1_strength = l1_strength
+            #self.l2_strength = l2_strength
 
         def forward(self, x):
             return self.layers(x)
+        
+        """  def l1_penalty(self):
+            l1_reg = 0
+            for param in self.parameters():
+                l1_reg += torch.norm(param, p=1)
+            return self.l1_strength * l1_reg"""
+        
+        """ def l2_penalty(self):
+            l2_reg = 0
+            for param in self.parameters():
+                l2_reg += torch.norm(param, p=2)
+            return self.l2_strength * l2_reg"""
 
     # create model with skorch
+    from skorch.callbacks import EarlyStopping
     model_skorch = NeuralNetRegressor(
         NN_model,
         criterion=nn.MSELoss,
         optimizer=optim.Adam,
-        max_epochs=100,#1000
-        batch_size=128,#32
-        verbose=False
+        optimizer__lr=0.001,
+        #module__l1_strength=0.001,# Adjust the L1 strength value
+        #optimizer__weight_decay=0.0001, #Adjust L2 strenght value
+        max_epochs=400,
+        batch_size=32,
+        callbacks=[EarlyStopping(patience=15)],  # Adjust patience 
+        verbose=True
     )
 
     # Define the parameter grid for hyperparameter tuning
     param_grid = {
-        'module__n_neurons': [8,16,32,64],
-        'module__dropout_rate': [0,0.2,0.4]
+        'module__n_neurons': [8, 16,32],
+        'module__dropout_rate':[0,0.3,0.5],
+        'module__activation': [func for name, func in activation_functions],
+        #'optimizer': [optim.Adam, optim.SGD, optim.RMSprop],
+        #'optimizer__lr': [0.001, 0.01,0.1],
+        #'module__l1_strength': [0.001, 0.01],
+        #'optimizer__weight_decay': [0.0001, 0.001, 0.01], # L2 strength
+        #'max_epochs': [ 300,400] 
+        #'callbacks': [[EarlyStopping(patience=10)] for i in range(5, 15)]  # Patience values to search
     }
 
     # Perform GridSearchCV for hyperparameter tuning
     print("gridsearchCV")
-    grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=3,n_jobs=-1,scoring="neg_mean_squared_error")
+    np.random.seed(42)
+    grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=10,n_jobs=-1,scoring="neg_mean_squared_error")
     print ("fitting grid")
     grid_result = grid_search.fit(X_tensor, y_tensor)
     print ("fitting done")
@@ -298,20 +335,16 @@ def forest(data,test_data):
     X_train,y_train,X_test= pre.create_sets(data,test_data)
 
     param_grid = {
-    'n_estimators': [100, 200, 300],  # Number of trees in the forest
-    'max_depth': [None, 5, 10, 15],  # Maximum depth of the tree
+    'n_estimators': [ 200, 300],  # Number of trees in the forest
+    'max_depth': [None, 5, 10],# Maximum depth of the tree
+
+    #'min_samples_split': [2, 5, 10],  # Test different values for min_samples_split
+    #'min_samples_leaf': [1, 2, 4]  # Test different values for min_samples_leaf
     }
     
-    """param_grid = {
-    'n_estimators': [100, 200, 300],  # Number of trees in the forest
-    'max_depth': [None, 5, 10, 15],  # Maximum depth of the tree
-    'min_samples_split': [2, 5, 10],  # Minimum number of samples required to split a node
-    'min_samples_leaf': [1, 2, 4],  # Minimum number of samples required at each leaf node
-    'max_features': ['auto', 'sqrt', 'log2'],  # Number of features to consider at every split
-    'bootstrap': [True, False],  # Whether bootstrap samples are used when building trees
-    }"""
+ 
 
-    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1, scoring='neg_mean_squared_error')
+    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1, scoring='neg_mean_squared_error',verbose =True)
     print ("fitting the grid")
     grid_search.fit(X_train, y_train)
     print("Best MSE: %f using %s" % (grid_search.best_score_, grid_search.best_params_))

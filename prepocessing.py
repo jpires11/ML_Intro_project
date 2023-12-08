@@ -3,10 +3,10 @@ import pandas as pd
 import numpy as np
 import os
 
-def create_sets(data,test_data,no_ECFP=False):
-    X_train = data.drop(["SMILES",'RT',"mol","Compound"], axis=1)  # Adjust columns to drop if needed
+def create_sets(data,test_data):
+    X_train = data.drop(["SMILES", 'RT', "mol", "Compound"], axis=1).copy()
     y_train = data['RT']
-    X_test=test_data.drop(["SMILES","mol","Compound"], axis=1)
+    X_test = test_data.drop(["SMILES", "mol", "Compound"], axis=1).copy()
     #if the set containes ECFP and CDDD could give the chose to have only CDDD
     """ if no_ECFP==True:
          columns_to_drop_train = [col for col in X_train.columns if col.startswith('ECFP_')]
@@ -125,11 +125,19 @@ def preprocess(CDDD = False, ECFP = True):
         #process data and load it
         dummies(data,'train_modified_data_CDDD.csv')
         dummies(test_data,'test_modified_data_CDDD.csv')
+        preprocess_and_check_constants(data)
+        preprocess_and_check_constants(test_data)
+        remove_highly_correlated(data, threshold=0.9)
+        remove_highly_correlated(test_data, threshold=0.9)
         train_preprocessed= pd.read_csv(os.path.join("Data_Set",'train_modified_data_CDDD.csv'))
         test_preprocessed= pd.read_csv(os.path.join("Data_Set",'test_modified_data_CDDD.csv'))
     else:
         dummies(data,'train_modified_data.csv')
         dummies(test_data,'test_modified_data.csv')
+        preprocess_and_check_constants(data)
+        preprocess_and_check_constants(test_data)
+        remove_highly_correlated(data, threshold=0.9)
+        remove_highly_correlated(test_data, threshold=0.9)
         train_preprocessed= pd.read_csv(os.path.join("Data_Set",'train_modified_data.csv'))
         test_preprocessed= pd.read_csv(os.path.join("Data_Set",'test_modified_data.csv'))
 
