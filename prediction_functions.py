@@ -301,7 +301,7 @@ def artificial_neurons(data,test_data):
     # Perform GridSearchCV for hyperparameter tuning
     print("gridsearchCV")
     np.random.seed(42)
-    grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=10,n_jobs=-1,scoring="neg_mean_squared_error",verbose=True)
+    grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=10,n_jobs=-1,scoring="neg_mean_squared_error",verbose=False)
     print ("fitting grid")
     grid_result = grid_search.fit(X_tensor, y_tensor)
     print ("fitting done")
@@ -344,7 +344,7 @@ def forest(data,test_data):
     
  
 
-    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1, scoring='r2')
+    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1, scoring='neg_mean_squared_error')
     print ("fitting the grid")
     grid_search.fit(X_train, y_train)
     print("Best MSE: %f using %s" % (grid_search.best_score_, grid_search.best_params_))
