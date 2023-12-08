@@ -289,8 +289,8 @@ def artificial_neurons(data,test_data):
     param_grid = {
         'module__n_neurons': [10,50,100],
         'module__dropout_rate':[0,0.3,0.5],
-        #'module__activation': [func for name, func in activation_functions],
-        #'optimizer': [optim.Adam, optim.SGD, optim.RMSprop],
+        'module__activation': [func for name, func in activation_functions],
+        'optimizer': [optim.Adam, optim.SGD, optim.RMSprop],
         'optimizer__lr': [0.001, 0.01,0.1],
         #'module__l1_strength': [0.001, 0.01],
         #'optimizer__weight_decay': [0.0001, 0.001, 0.01], # L2 strength
@@ -301,7 +301,7 @@ def artificial_neurons(data,test_data):
     # Perform GridSearchCV for hyperparameter tuning
     print("gridsearchCV")
     np.random.seed(42)
-    grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=10,n_jobs=-1,scoring="neg_mean_squared_error",verbose=False)
+    grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=10,n_jobs=-1,scoring="neg_mean_squared_error")
     print ("fitting grid")
     grid_result = grid_search.fit(X_tensor, y_tensor)
     print ("fitting done")
