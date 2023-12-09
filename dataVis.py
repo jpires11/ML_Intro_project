@@ -132,7 +132,7 @@ def GD_parameters(train_clean, test_data, save = False):
         y_pred = pf.gradient_descent(train, X_val, lr, epochs=500)  # Adjust epochs as needed
        
         # Ensure that y_val has the correct shape
-        print(f"Shape of y_val: {X_val.shape}")
+        print(f"Shape of y_val: {y_val.shape}")
 
         # Evaluate the model using mean squared error
         mse = pf.mean_squared_error(y_val, y_pred)
@@ -169,6 +169,65 @@ def GD_parameters(train_clean, test_data, save = False):
     plt.xlabel('epochs')
     plt.ylabel('Mean Squared Error')
     plt.title('Epoch Tuning')
+    if (save == True):
+        plt.savefig(os.path.join("visualisation", 'GradientDescentEPParameters.jpg'))
+    plt.show()
+
+def NN_parameters(train_clean, test_data, save = False):
+    X_,y_train,X_te= pre.create_sets(train_clean,test_data)
+    X_train, X_val, y_train, y_val = pf.train_test_split(train_clean, y_train, test_size=0.2, random_state=42)
+    train = pd.merge(X_train, y_train)
+
+    # Initialize a range of learning rates to try
+    module__n_neuron = [2, 4, 8]
+    module__dropout_rate = [0, 0.1, 0.2]
+    # Dictionary to store results for each learning rate
+    results = {}
+    X_val = X_val.drop(['RT'], axis=1)
+
+
+    for mn in module__n_neuron:
+        # Train the model with the current learning rate
+        y_pred = pf.artificial_neurons(train, X_val, mn, 0.1)  # Adjust epochs as needed
+       
+        # Ensure that y_val has the correct shape
+        print(f"Shape of y_val: {y_val.shape}")
+
+        # Evaluate the model using mean squared error
+        mse = pf.mean_squared_error(y_val, y_pred)
+        
+        # Store the results for later analysis
+        results[mn] = mse
+    # Plot the learning rate vs. mean squared error
+    plt.plot(list(results.keys()), list(results.values()), marker='o')
+    #plt.xscale('log')  # Use a log scale for better visualization
+    plt.xlabel('Neuron')
+    plt.ylabel('Mean Squared Error')
+    plt.title('LN Neuron Tuning')
+    if (save == True):
+        plt.savefig(os.path.join("visualisation", 'GradientDescentLRParameters.jpg'))
+    plt.show()
+
+    results = {}
+    for md in module__dropout_rate:
+        # Train the model with the current learning rate
+        y_pred = pf.aftificial_neurons(train, X_val, 8, dropout=md)  # Adjust epochs as needed
+        
+        # Ensure that y_val has the correct shape
+        print(f"Shape of y_val: {X_val.shape}")
+
+        # Evaluate the model using mean squared error
+        mse = pf.mean_squared_error(y_val, y_pred)
+        
+        # Store the results for later analysis
+        results[md] = mse
+
+    # Plot the epoch vs. mean squared error
+    plt.plot(list(results.keys()), list(results.values()), marker='o')
+    #plt.xscale('log')  # Use a log scale for better visualization
+    plt.xlabel('dropout')
+    plt.ylabel('Mean Squared Error')
+    plt.title('Dropout Tuning')
     if (save == True):
         plt.savefig(os.path.join("visualisation", 'GradientDescentEPParameters.jpg'))
     plt.show()
