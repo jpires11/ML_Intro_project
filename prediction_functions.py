@@ -202,8 +202,9 @@ def gradient_descent(data, test_data, learning_rate=0.01, epochs=1000):
     creation_result_file(y_pred, 'prediction_GD.csv')
 
     return y_pred
-def artificial_neurons(data,test_data):
-    
+
+def artificial_neurons(data,test_data, n_neuron, dropout):
+
     import torch
     import torch.nn as nn
     import torch.optim as optim
@@ -234,7 +235,7 @@ def artificial_neurons(data,test_data):
     print(X_tensor.size()) 
     # Define the neural network model using PyTorch
     class NN_model(nn.Module):
-        def __init__(self, input_size=1040, n_neurons=8, dropout_rate=0.5):
+        def __init__(self, input_size=X_standardized.shape[1], n_neurons=8, dropout_rate=0.5):
             super().__init__()
             self.layers = nn.Sequential(
                 nn.Linear(input_size, n_neurons),
@@ -251,20 +252,20 @@ def artificial_neurons(data,test_data):
         NN_model,
         criterion=nn.MSELoss,
         optimizer=optim.Adam,
-        max_epochs=100,#1000
+        max_epochs=25,#1000
         batch_size=128,#32
-        verbose=False
+        verbose=True
     )
 
     # Define the parameter grid for hyperparameter tuning
     param_grid = {
-        'module__n_neurons': [8,16,32,64],
-        'module__dropout_rate': [0,0.2,0.4]
+        'module__n_neurons': [n_neuron],
+        'module__dropout_rate': [dropout]
     }
 
     # Perform GridSearchCV for hyperparameter tuning
     print("gridsearchCV")
-    grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=3,n_jobs=-1,scoring="neg_mean_squared_error")
+    grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=3)
     print ("fitting grid")
     grid_result = grid_search.fit(X_tensor, y_tensor)
     print ("fitting done")
@@ -288,7 +289,8 @@ def artificial_neurons(data,test_data):
     # Save predictions to a file
     print("creating file")
     creation_result_file(y_pred, 'artificial_neurons.csv')
-    
+    return y_pred
+  
 def forest(data,test_data):
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.model_selection import GridSearchCV
