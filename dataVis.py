@@ -179,39 +179,48 @@ def NN_parameters(train_clean, test_data, save = False):
     train = pd.merge(X_train, y_train)
 
     # Initialize a range of learning rates to try
-    module__n_neuron = [2, 4, 8]
-    module__dropout_rate = [0, 0.1, 0.2]
+    module__n_neuron = [16, 24, 32, 64, 128, 180, 256]
+    #module__dropout_rate = [0.2, 0.3]
+    learning_rate = [0.01]
     # Dictionary to store results for each learning rate
     results = {}
     X_val = X_val.drop(['RT'], axis=1)
-
-
+    from mpl_toolkits.mplot3d import Axes3D
+    nl = []
+    lrl =[]
+    msel =[]
     for mn in module__n_neuron:
-        # Train the model with the current learning rate
-        y_pred = pf.artificial_neurons(train, X_val, mn, 0.1)  # Adjust epochs as needed
-       
-        # Ensure that y_val has the correct shape
-        print(f"Shape of y_val: {y_val.shape}")
+        for lr in learning_rate:
+            # Train the model with the current learning rate
+            y_pred = pf.artificial_neurons(train, X_val, mn, dropout=0.2, learning_rate=lr)  # Adjust epochs as needed
+            
+            # Ensure that y_val has the correct shape
+            print(f"Shape of y_val: {X_val.shape}")
 
-        # Evaluate the model using mean squared error
-        mse = pf.mean_squared_error(y_val, y_pred)
-        
-        # Store the results for later analysis
-        results[mn] = mse
+            # Evaluate the model using mean squared error
+            mse = pf.mean_squared_error(y_val, y_pred)
+            nl.append(mn)
+            lrl.append(lr)
+            msel.append(mse)
     # Plot the learning rate vs. mean squared error
-    plt.plot(list(results.keys()), list(results.values()), marker='o')
+    fig = plt.figure()
+    #ax = fig.add_subplot(111, projection='3d')
+    plt.scatter(nl, msel)
     #plt.xscale('log')  # Use a log scale for better visualization
-    plt.xlabel('Neuron')
-    plt.ylabel('Mean Squared Error')
-    plt.title('LN Neuron Tuning')
+    plt.xlabel('neurons')
+    plt.ylabel('mse')
+    #ax.set_zlabel('mse')
+    #plt.xscale('log')
+    plt.title('HP Tuning')
     if (save == True):
-        plt.savefig(os.path.join("visualisation", 'GradientDescentLRParameters.jpg'))
+        plt.savefig(os.path.join("visualisation", 'NeuronParameters2.jpg'))
     plt.show()
-
+    print(msel)
     results = {}
+    '''
     for md in module__dropout_rate:
         # Train the model with the current learning rate
-        y_pred = pf.aftificial_neurons(train, X_val, 8, dropout=md)  # Adjust epochs as needed
+        y_pred = pf.artificial_neurons(train, X_val, 8, dropout=md)  # Adjust epochs as needed
         
         # Ensure that y_val has the correct shape
         print(f"Shape of y_val: {X_val.shape}")
@@ -221,13 +230,15 @@ def NN_parameters(train_clean, test_data, save = False):
         
         # Store the results for later analysis
         results[md] = mse
+        '''
 
-    # Plot the epoch vs. mean squared error
+
+    '''# Plot the epoch vs. mean squared error
     plt.plot(list(results.keys()), list(results.values()), marker='o')
     #plt.xscale('log')  # Use a log scale for better visualization
     plt.xlabel('dropout')
     plt.ylabel('Mean Squared Error')
-    plt.title('Dropout Tuning')
+    plt.title('Dropout Tuning')'''
     if (save == True):
-        plt.savefig(os.path.join("visualisation", 'GradientDescentEPParameters.jpg'))
+        plt.savefig(os.path.join("visualisation", 'NNPParameters.jpg'))
     plt.show()

@@ -3,10 +3,10 @@ import pandas as pd
 import numpy as np
 import os
 
-def create_sets(data,test_data,no_ECFP=False):
-    X_train = data.drop(["SMILES",'RT',"mol","Compound"], axis=1)  # Adjust columns to drop if needed
+def create_sets(data,test_data):
+    X_train = data.drop(["SMILES", 'RT', "mol", "Compound"], axis=1).copy()
     y_train = data['RT']
-    X_test=test_data.drop(["SMILES","mol","Compound"], axis=1)
+    X_test = test_data.drop(["SMILES", "mol", "Compound"], axis=1).copy()
     #if the set containes ECFP and CDDD could give the chose to have only CDDD
     """ if no_ECFP==True:
          columns_to_drop_train = [col for col in X_train.columns if col.startswith('ECFP_')]
@@ -20,7 +20,7 @@ def test_missing_values():
     """testing the data for missing values
     """
     # Load your test dataset
-    data = pd.read_csv('train.csv')  # Replace with your test dataset
+    data = pd.read_csv('Data_set/train.csv')  # Replace with your test dataset
 
     # Check for missing values
     missing_values = data.isnull().sum()
@@ -31,14 +31,15 @@ def test_missing_values():
 
 def dummies(data, name):
     import os
+    data_encode= data.copy()
     # Convert 'Lab' column to categorical if it's not already categorical
-    data['Lab'] = data['Lab'].astype('category')
+    data_encode['Lab'] = data_encode['Lab'].astype('category')
     
     # Convert 'Compound' column to categorical if it's not already categorical
     #data['Compound'] = data['Compound'].astype('category')
 
     # Get dummies for 'Lab' and 'Compound' columns
-    encoded_cols_lab = pd.get_dummies(data['Lab'], prefix='Lab')
+    encoded_cols_lab = pd.get_dummies(data_encode['Lab'], prefix='Lab')
     ##encoded_cols_compound = pd.get_dummies(data['Compound'], prefix='Compound')
     
     # Convert False and True values to binary (0 and 1)
@@ -47,36 +48,36 @@ def dummies(data, name):
 
     # Drop the original 'Lab' and 'Compound' columns from the DataFrame
     #data = data.drop(['Lab', 'Compound'], axis=1)
-    data = data.drop(['Lab'], axis=1)
+    data_encode = data_encode.drop(['Lab'], axis=1)
     # Concatenate the original DataFrame with the encoded columns
-    data = pd.concat([data, encoded_cols_lab], axis=1)
+    data_encode = pd.concat([data_encode, encoded_cols_lab], axis=1)
     #data = pd.concat([data, encoded_cols_lab, encoded_cols_compound], axis=1)
     
     # Save the modified DataFrame to a CSV file
-    data.to_csv(os.path.join("Data_Set", name), index=False)
+    data_encode.to_csv(os.path.join("Data_set", name), index=False)
+    
+    return data_encode
 
     
 #test if there is constante values
     
-def preprocess_and_check_constants(data):
 
-    # Step 1: Remove constant columns
-    non_constant_cols = data.columns[data.nunique() > 1]
-    data_no_const = data[non_constant_cols]
 
-    # Step 2: Check which columns were removed
-    constant_cols = data.columns.difference(non_constant_cols)
+def preprocess_and_check_constants(data, test_data):
+    # Identify constant columns in data
+    constant_cols_data = data.columns[data.nunique() == 1].tolist()
 
-    # Print columns that are deleted
-    print("Deleted Constant Columns:", constant_cols.tolist())
+    # Print columns that are constant in data
+    print("Constant Columns in Training Data:", constant_cols_data)
 
-    # Save the modified DataFrame to a new CSV file
-    data_no_const.to_csv(os.path.join("Data_set", 'preprocessed_data.csv'), index=False)
+    # Remove constant columns from data
+    data = data.drop(constant_cols_data, axis=1)
 
-    return data_no_const
+    # Remove the same columns from test data
+    test_data = test_data.drop(constant_cols_data, axis=1, errors='ignore')
 
 #test if variable are correlated 
-def remove_highly_correlated(data, threshold=0.9):
+def remove_highly_correlated(data,test_data, threshold=0.9):
     # Identify only numeric columns
     numeric_cols = data.select_dtypes(include=np.number).columns.tolist()
 
@@ -91,9 +92,11 @@ def remove_highly_correlated(data, threshold=0.9):
     print("Highly Correlated Columns:", to_drop)
 
     # Drop the highly correlated columns
-    data_no_corr = data.drop(columns=to_drop)
-    data_no_corr.to_csv(os.path.join("Data_set", 'preprocessed_data.csv'), index=False)
-    return  to_drop
+    data = data.drop(columns=to_drop)
+    data.to_csv(os.path.join("Data_set", 'train_modified_data_CDDD.csv'), index=False)
+    test_data = test_data.drop(columns=to_drop)
+    test_data.to_csv(os.path.join("Data_set", 'test_modified_data_CDDD.csv'), index=False)
+    
 
 def mergeRT_CDDD(data, cddd, n=513, onlyRT = False, RT = True, ECFP = False):
     #Assuming 'data' is your DataFrame
@@ -103,9 +106,9 @@ def mergeRT_CDDD(data, cddd, n=513, onlyRT = False, RT = True, ECFP = False):
         if onlyRT == True:
             selected_columns = ['RT'] + [f'cddd_{i}' for i in range(1, n)]
         else:
-            selected_columns = ['RT'] + ['SMILES'] + ['mol'] + ['Compound'] + ["Lab"] + [f'cddd_{i}' for i in range(1, n)]
+            selected_columns = ['RT'] + ['SMILES'] + ['Compound'] + ["Lab"] + [f'cddd_{i}' for i in range(1, n)]
     else:
-        selected_columns = ['SMILES'] + ['mol'] + ['Compound'] + ["Lab"] + [f'cddd_{i}' for i in range(1, n)]
+        selected_columns = ['SMILES'] + ['Compound'] + ["Lab"] + [f'cddd_{i}' for i in range(1, n)]
     if ECFP == True:
         selected_columns += [f'ECFP_{i}' for i in range(1, 1025)]
     subset_data = merged_data[selected_columns]
@@ -123,14 +126,14 @@ def preprocess(CDDD = False, ECFP = True):
         test_data = mergeRT_CDDD(test_data, cddd, RT = False, ECFP = ECFP)
         #test_data = test_data.dropna()
         #process data and load it
-        dummies(data,'train_modified_data_CDDD.csv')
-        dummies(test_data,'test_modified_data_CDDD.csv')
-        train_preprocessed= pd.read_csv(os.path.join("Data_Set",'train_modified_data_CDDD.csv'))
-        test_preprocessed= pd.read_csv(os.path.join("Data_Set",'test_modified_data_CDDD.csv'))
+        train_preprocessed=dummies(data,'train_modified_data_CDDD.csv')
+        test_preprocessed=dummies(test_data,'test_modified_data_CDDD.csv')
+        preprocess_and_check_constants(train_preprocessed,test_preprocessed)
+        remove_highly_correlated(train_preprocessed,test_preprocessed, threshold=0.9)
     else:
-        dummies(data,'train_modified_data.csv')
-        dummies(test_data,'test_modified_data.csv')
-        train_preprocessed= pd.read_csv(os.path.join("Data_Set",'train_modified_data.csv'))
-        test_preprocessed= pd.read_csv(os.path.join("Data_Set",'test_modified_data.csv'))
+        train_preprocessed=dummies(data,'train_modified_data.csv')
+        test_preprocessed=dummies(test_data,'test_modified_data.csv')
+        preprocess_and_check_constants(train_preprocessed,test_preprocessed)
+        remove_highly_correlated(train_preprocessed,test_preprocessed, threshold=0.9)
 
     return data, test_data, train_preprocessed, test_preprocessed

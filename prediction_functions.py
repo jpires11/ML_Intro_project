@@ -203,7 +203,7 @@ def gradient_descent(data, test_data, learning_rate=0.01, epochs=1000):
 
     return y_pred
 
-def artificial_neurons(data,test_data, n_neuron, dropout):
+def artificial_neurons(data,test_data, n_neuron, dropout, learning_rate):
 
     import torch
     import torch.nn as nn
@@ -213,6 +213,7 @@ def artificial_neurons(data,test_data, n_neuron, dropout):
     import numpy as np
     from sklearn.preprocessing import StandardScaler
     from skorch import NeuralNetRegressor #sklearn + pytorch
+    from skorch.callbacks import EarlyStopping
     
     # Set seed for Torch
     torch.manual_seed(42)
@@ -246,14 +247,17 @@ def artificial_neurons(data,test_data, n_neuron, dropout):
 
         def forward(self, x):
             return self.layers(x)
-
+    
+    early_stopping = EarlyStopping(patience=10)
     # create model with skorch
     model_skorch = NeuralNetRegressor(
         NN_model,
         criterion=nn.MSELoss,
         optimizer=optim.Adam,
-        max_epochs=25,#1000
-        batch_size=128,#32
+        optimizer__lr=learning_rate,
+        callbacks=[early_stopping],
+        max_epochs=300,#1000
+        batch_size=64,#32
         verbose=True
     )
 
