@@ -179,9 +179,9 @@ def NN_parameters(train_clean, test_data, save = False):
     train = pd.merge(X_train, y_train)
 
     # Initialize a range of learning rates to try
-    module__n_neuron = [16, 24, 32, 64, 128, 180, 256]
+    module__n_neuron = [24, 32, 64, 128, 256, 512, 784, 1028]
     #module__dropout_rate = [0.2, 0.3]
-    learning_rate = [0.01]
+    learning_rate = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
     # Dictionary to store results for each learning rate
     results = {}
     X_val = X_val.drop(['RT'], axis=1)
@@ -190,12 +190,13 @@ def NN_parameters(train_clean, test_data, save = False):
     lrl =[]
     msel =[]
     for mn in module__n_neuron:
+        print("neurons " + str(mn))
         for lr in learning_rate:
             # Train the model with the current learning rate
-            y_pred = pf.artificial_neurons(train, X_val, mn, dropout=0.2, learning_rate=lr)  # Adjust epochs as needed
+            y_pred = pf.artificial_neurons(train, X_val, mn, dropout=lr, learning_rate=0.0005)  # Adjust epochs as needed
             
             # Ensure that y_val has the correct shape
-            print(f"Shape of y_val: {X_val.shape}")
+            #print(f"Shape of y_val: {X_val.shape}")
 
             # Evaluate the model using mean squared error
             mse = pf.mean_squared_error(y_val, y_pred)
@@ -203,17 +204,19 @@ def NN_parameters(train_clean, test_data, save = False):
             lrl.append(lr)
             msel.append(mse)
     # Plot the learning rate vs. mean squared error
+    print(msel)
     fig = plt.figure()
     #ax = fig.add_subplot(111, projection='3d')
-    plt.scatter(nl, msel)
+    plt.scatter(nl, msel, c=lrl, cmap='viridis')
     #plt.xscale('log')  # Use a log scale for better visualization
     plt.xlabel('neurons')
     plt.ylabel('mse')
     #ax.set_zlabel('mse')
     #plt.xscale('log')
+    plt.legend()
     plt.title('HP Tuning')
     if (save == True):
-        plt.savefig(os.path.join("visualisation", 'NeuronParameters2.jpg'))
+        plt.savefig(os.path.join("visualisation", 'NeuronParametersBig.jpg'))
     plt.show()
     print(msel)
     results = {}

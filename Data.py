@@ -41,6 +41,6 @@ dV.RTvsCompoundbyLab(data, n, save = True)"""
 #dV.GD_parameters(train_clean, test_data, save = True)
 #pf.gradient_descent(train_clean,test_preprocessed, learning_rate=0.05, epochs=400)
 dV.NN_parameters(train_preprocessed,test_preprocessed,save=True)
-#pf.artificial_neurons(train_clean,test_preprocessed)
+#pf.artificial_neurons(train_preprocessed,test_preprocessed)
 
 #pf.forest(train_preprocessed,test_preprocessed)

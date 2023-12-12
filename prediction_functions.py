@@ -203,7 +203,7 @@ def gradient_descent(data, test_data, learning_rate=0.01, epochs=1000):
 
     return y_pred
 
-def artificial_neurons(data,test_data, n_neuron, dropout, learning_rate):
+def artificial_neurons(data,test_data, n_neuron=100, dropout=0.4, learning_rate=0.0001):
 
     import torch
     import torch.nn as nn
@@ -236,7 +236,7 @@ def artificial_neurons(data,test_data, n_neuron, dropout, learning_rate):
     print(X_tensor.size()) 
     # Define the neural network model using PyTorch
     class NN_model(nn.Module):
-        def __init__(self, input_size=X_standardized.shape[1], n_neurons=8, dropout_rate=0.5):
+        def __init__(self, input_size=X_standardized.shape[1], n_neurons=64, dropout_rate=0.4):
             super().__init__()
             self.layers = nn.Sequential(
                 nn.Linear(input_size, n_neurons),
@@ -248,7 +248,7 @@ def artificial_neurons(data,test_data, n_neuron, dropout, learning_rate):
         def forward(self, x):
             return self.layers(x)
     
-    early_stopping = EarlyStopping(patience=10)
+    early_stopping = EarlyStopping(patience=50)
     # create model with skorch
     model_skorch = NeuralNetRegressor(
         NN_model,
@@ -256,9 +256,9 @@ def artificial_neurons(data,test_data, n_neuron, dropout, learning_rate):
         optimizer=optim.Adam,
         optimizer__lr=learning_rate,
         callbacks=[early_stopping],
-        max_epochs=300,#1000
-        batch_size=64,#32
-        verbose=True
+        max_epochs=600,#1000
+        batch_size=32,#32
+        verbose=False
     )
 
     # Define the parameter grid for hyperparameter tuning
