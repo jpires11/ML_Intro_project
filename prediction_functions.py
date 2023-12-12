@@ -202,16 +202,16 @@ def gradient_descent(data, test_data, learning_rate=0.01, epochs=1000):
     creation_result_file(y_pred, 'prediction_GD.csv')
 
     return y_pred
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import mean_squared_error
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from skorch import NeuralNetRegressor #sklearn + pytorch
+from skorch.callbacks import EarlyStopping
 def artificial_neurons(data,test_data):
-    
-    import torch
-    import torch.nn as nn
-    import torch.optim as optim
-    from sklearn.model_selection import GridSearchCV
-    from sklearn.metrics import mean_squared_error
-    import numpy as np
-    from sklearn.preprocessing import StandardScaler
-    from skorch import NeuralNetRegressor #sklearn + pytorch
 
     # Set seed for NumPy
     torch.manual_seed(42)
@@ -221,12 +221,23 @@ def artificial_neurons(data,test_data):
     X_train,y_train,X_test= pre.create_sets(data,test_data)
 
     # Standardize the input features
-    standardizer = StandardScaler()
-    X_standardized = standardizer.fit_transform(X_train)
-    Y_standardized = standardizer.fit_transform(X_test)
+    X_standardizer = StandardScaler()
+    X_standardized = X_standardizer.fit_transform(X_train)
+
+    # Standardize the output features (y_train)
+    y_standardizer = StandardScaler()
+    y_train_reshaped = y_train.values.reshape(-1, 1)  # Convert to NumPy array and reshape
+    Y_standardized = y_standardizer.fit_transform(y_train_reshaped)
+
+
+    standardized_test = X_standardizer.transform(X_test)
+ 
+    
     X_tensor = torch.tensor(X_standardized, dtype=torch.float32)
-    y_tensor = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1)
-    #print(X_train.shape())
+    y_tensor = torch.tensor(Y_standardized, dtype=torch.float32)
+    test_tensor = torch.tensor(standardized_test, dtype=torch.float32)
+
+
     print ("")
     print(X_tensor.size()) 
    
@@ -282,17 +293,17 @@ def artificial_neurons(data,test_data):
         max_epochs=400,
         batch_size=32,
         callbacks=[EarlyStopping(patience=15)],  # Adjust patience 
-        verbose=False
+        verbose=True
         
     )
 
     # Define the parameter grid for hyperparameter tuning
     param_grid = {
-        'module__n_neurons': [10,50,100],
-        'module__dropout_rate':[0,0.3,0.5],
-        'module__activation': [func for name, func in activation_functions],
-        'optimizer': [optim.Adam, optim.SGD, optim.RMSprop],
-        'optimizer__lr': [0.001, 0.01,0.1],
+        'module__n_neurons': [8,50,100,256],
+        'module__dropout_rate':[0.2,0.5]
+        #'module__activation': [func for name, func in activation_functions],
+        #'optimizer': [optim.Adam, optim.SGD, optim.RMSprop],
+        #'optimizer__lr': [0.001, 0.01,0.1],
         #'module__l1_strength': [0.001, 0.01],
         #'optimizer__weight_decay': [0.0001, 0.001, 0.01], # L2 strength
         #'max_epochs': [ 300,400] 
@@ -315,14 +326,26 @@ def artificial_neurons(data,test_data):
     # Fit the best model to the data
     print ("fitting model")
     mach2.fit(X_tensor, y_tensor)
+    
 
     # Make predictions
     print("setting tensor")
     # Convert test data to tensor or numpy array
-    X_test_tensor = torch.tensor(X_test.values, dtype=torch.float32)  # Assuming test_data is a DataFrame
     print("predicting")
-    y_pred_torch = mach2.predict(X_test_tensor)
-    y_pred= np.squeeze(y_pred_torch)
+    y_pred_torch = mach2.predict(test_tensor)
+    # Make predictions
+    y_pred_standardized = y_pred_torch.flatten()  # Flatten predictions
+
+    # Inverse transform the standardized predictions
+    y_pred = y_standardizer.inverse_transform(y_pred_standardized.reshape(-1, 1)).flatten()
+
+    # Save predictions to a file
+    creation_result_file(y_pred, 'artificial_neurons.csv')
+
+    
+    y_pred_standardized = y_standardizer.inverse_transform(y_pred_torch).flatten()
+    y_pred = y_pred_standardized.flatten()  # Assuming 'y_pred_standardized' contains the inverse transformed values
+
     # Save predictions to a file
     print("creating file")
     creation_result_file(y_pred, 'artificial_neurons.csv')
@@ -330,22 +353,27 @@ def artificial_neurons(data,test_data):
 def forest(data,test_data):
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.model_selection import GridSearchCV
+    from sklearn.decomposition import PCA
     # Set seed for reproducibility
     np.random.seed(42)
     model = RandomForestRegressor(random_state=42)
     X_train,y_train,X_test= pre.create_sets(data,test_data)
 
     param_grid = {
-    'n_estimators': [200,300,400],  # Number of trees in the forest
-    'max_depth': [None,5,10]# Maximum depth of the tree
-
-    #'min_samples_split': [2, 5, 10],  # Test different values for min_samples_split
-    #'min_samples_leaf': [1, 2, 4]  # Test different values for min_samples_leaf
+        'n_estimators': [100,200,400],  # Number of trees in the forest
+        'max_depth': [None,5,10,15],  # Maximum depth of the tree
+        #'min_samples_split': [2, 5, 10],  # Test different values for min_samples_split
+        #'min_samples_leaf': [1, 2, 4],  # Test different values for min_samples_leaf
+        'max_features': ['sqrt', 'log2', None]  # Max features to consider for splitting
+        #'bootstrap': [True, False],  # Whether bootstrap samples are used
+       # 'max_samples': [0.5, 0.7, 0.9, None],  # Number of samples to draw for each tree
+       # 'ccp_alpha': [0.0, 0.1, 0.2],  # Cost Complexity Pruning parameter
+        #'max_leaf_nodes': [None, 10, 50, 100]  # Maximum number of leaf nodes in a tree
     }
     
  
 
-    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1, scoring='neg_mean_squared_error')
+    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1, scoring='neg_mean_squared_error',verbose =1)
     print ("fitting the grid")
     grid_search.fit(X_train, y_train)
     print("Best MSE: %f using %s" % (grid_search.best_score_, grid_search.best_params_))
@@ -353,10 +381,8 @@ def forest(data,test_data):
     best_model = grid_search.best_estimator_
     print("predicting")
     y_pred = best_model.predict(X_test)
+    
     # Save predictions to a file
     print("creating file")
     creation_result_file(y_pred, 'random_forest.csv')
-
-
-
 

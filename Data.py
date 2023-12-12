@@ -10,12 +10,12 @@ import os #to save plots
 from openpyxl.workbook import Workbook
 import prediction_functions as pf
 import prepocessing as pre 
+import neural_network as nn
 
 
+data, test_data, train_preprocessed, test_preprocessed = pre.preprocess(True, False)
 
-data, test_data, train_preprocessed, test_preprocessed = pre.preprocess(False, True)
 #dV.excel_doc(data,test_data, train_preprocessed, test_preprocessed,"train_processed_just_CDDD.xlsx","test_processed_just_CDDD.xlsx")
-
 """n =25
 
 dV.scatterRTvsCompound(data, n)
@@ -29,22 +29,11 @@ dV.RTvsCompoundbyLab(data, n, save = True)"""
 #pf.knn_regression(train_clean,test_preprocessed)
 
 #pf.rigid_regulation(train_preprocessed, test_preprocessed)
-
-"""train_preprocessed.fillna(0, inplace=True)
-test_preprocessed.fillna(0, inplace=True)"""
 """
-columns_starting_with_cddd_test = [col for col in test_preprocessed.columns if col.startswith('cddd_')]
+train_preprocessed.fillna(0, inplace=True)
+test_preprocessed.fillna(0, inplace=True)
+"""
 
-
-for col in columns_starting_with_cddd_test:
-    col_mean = test_preprocessed[col].mean()
-    test_preprocessed[col].fillna(col_mean, inplace=True)
-    
-columns_starting_with_cddd_train = [col for col in train_preprocessed.columns if col.startswith('cddd_')]
-
-for col in columns_starting_with_cddd_train:
-    col_mean = train_preprocessed[col].mean()
-    train_preprocessed[col].fillna(col_mean, inplace=True)"""
     
 #pf.lasso_regulation(train_preprocessed,test_preprocessed)
 
@@ -53,6 +42,10 @@ for col in columns_starting_with_cddd_train:
 #dV.GD_parameters(train_clean, test_data, save = True)
 #pf.gradient_descent(train_clean,test_preprocessed, learning_rate=0.05, epochs=400)
 
-pf.artificial_neurons(train_preprocessed,test_preprocessed)
+#pf.artificial_neurons(train_preprocessed,test_preprocessed)
 
-#pf.forest(train_preprocessed,test_preprocessed)
+pf.forest(train_preprocessed,test_preprocessed)
+#pf.new_forest(train_preprocessed,test_preprocessed)
+#pf.NN_prediction(train_preprocessed, test_preprocessed)
+
+#nn.artificial_network(train_preprocessed,test_preprocessed)

@@ -7,20 +7,13 @@ def create_sets(data,test_data):
     X_train = data.drop(["SMILES", 'RT', "mol", "Compound"], axis=1).copy()
     y_train = data['RT']
     X_test = test_data.drop(["SMILES", "mol", "Compound"], axis=1).copy()
-    #if the set containes ECFP and CDDD could give the chose to have only CDDD
-    """ if no_ECFP==True:
-         columns_to_drop_train = [col for col in X_train.columns if col.startswith('ECFP_')]
-         columns_to_drop_test = [col for col in X_test.columns if col.startswith('ECFP_')]
-         X_train = X_train.drop(columns=columns_to_drop_train, inplace=True) 
-         X_test=X_test.drop(columns=columns_to_drop_test, inplace=True) """
-         
     return X_train,y_train,X_test
 
-def test_missing_values():
+def test_missing_values(data):
     """testing the data for missing values
     """
     # Load your test dataset
-    data = pd.read_csv('Data_set/train.csv')  # Replace with your test dataset
+     
 
     # Check for missing values
     missing_values = data.isnull().sum()
@@ -115,25 +108,38 @@ def mergeRT_CDDD(data, cddd, n=513, onlyRT = False, RT = True, ECFP = False):
     return subset_data
 
 def preprocess(CDDD = False, ECFP = True):
-    data= pd.read_csv(os.path.join("Data_set",'train.csv'))
+    train_data= pd.read_csv(os.path.join("Data_set",'train.csv'))
     test_data=pd.read_csv(os.path.join("Data_set","test.csv"))
     
-
     if CDDD == True:
         cddd = pd.read_csv(os.path.join("Data_set",'cddd.csv'))
-        data = mergeRT_CDDD(data, cddd, ECFP = ECFP)
-        #data = data.dropna()
+    
+        # Merge of cddd into the datasets based on smiles
+        train_data = mergeRT_CDDD(train_data, cddd, ECFP = ECFP)
         test_data = mergeRT_CDDD(test_data, cddd, RT = False, ECFP = ECFP)
-        #test_data = test_data.dropna()
-        #process data and load it
-        train_preprocessed=dummies(data,'train_modified_data_CDDD.csv')
+        # Fill the missing values in the dataset with the mean of the columns 
+        columns_starting_with_cddd_test = [col for col in test_data.columns if col.startswith('cddd_')]
+        for col in columns_starting_with_cddd_test:
+            col_mean = test_data[col].mean()
+            test_data[col].fillna(col_mean, inplace=True)
+            
+        columns_starting_with_cddd_train = [col for col in train_data.columns if col.startswith('cddd_')]
+        for col in columns_starting_with_cddd_train:
+            col_mean = train_data[col].mean()
+            train_data[col].fillna(col_mean, inplace=True)
+    
+        # Encoding of Labs
+        train_preprocessed=dummies(train_data,'train_modified_data_CDDD.csv')
         test_preprocessed=dummies(test_data,'test_modified_data_CDDD.csv')
+        # Removal of constant or correlated parameters
         preprocess_and_check_constants(train_preprocessed,test_preprocessed)
         remove_highly_correlated(train_preprocessed,test_preprocessed, threshold=0.9)
     else:
-        train_preprocessed=dummies(data,'train_modified_data.csv')
+        # Encoding of Labs
+        train_preprocessed=dummies(train_data,'train_modified_data.csv')
         test_preprocessed=dummies(test_data,'test_modified_data.csv')
+        # Removal of constant or correlated parameters
         preprocess_and_check_constants(train_preprocessed,test_preprocessed)
         remove_highly_correlated(train_preprocessed,test_preprocessed, threshold=0.9)
 
-    return data, test_data, train_preprocessed, test_preprocessed
+    return train_data, test_data, train_preprocessed, test_preprocessed
