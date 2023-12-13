@@ -386,3 +386,52 @@ def forest(data,test_data):
     print("creating file")
     creation_result_file(y_pred, 'random_forest.csv')
 
+import xgboost as xgb
+
+from sklearn.model_selection import GridSearchCV
+
+def xgb_predict(train_data, test_data):
+    # Initialize XGBoost regressor or classifier based on the problem
+    model = xgb.XGBRegressor()  # For regression, change to XGBClassifier for classification
+
+    X_train, y_train, X_test = pre.create_sets(train_data, test_data)
+
+    # Hyperparameter grid for tuning
+    param_grid = {
+       # 'max_depth': [3, 5, 7],
+        #'learning_rate': [0.1, 0.01],
+        #'n_estimators': [100,100,10000],
+       # 'reg_alpha': [0, 0.001, 0.01],
+        #'min_child_weight': [1, 3, 5],
+        #'subsample': [0.6, 0.8, 1.0],
+        #'colsample_bytree': [0.6, 0.8, 1.0],
+        
+        'max_depth': [ 7],
+        'learning_rate': [0.1],
+        #'n_estimators': [500],
+        #'reg_alpha': [ 0.01],
+        #
+        #'min_child_weight': [1],
+        #'subsample': [0.6],
+        #'colsample_bytree': [0.6]
+        
+        # Add more parameters for tuning
+    }
+
+    # GridSearchCV for hyperparameter tuning
+    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1,verbose=1,scoring='neg_mean_squared_error')
+    grid_search.fit(X_train, y_train)
+    print("Best MSE: %f using %s" % (grid_search.best_score_, grid_search.best_params_))
+
+    # Get the best model
+    best_model = grid_search.best_estimator_
+
+    # Train the best model
+    best_model.fit(X_train, y_train)
+
+    # Predict on the test set
+    y_pred = best_model.predict(X_test)
+    print("creating file")
+    creation_result_file(y_pred, 'XGBß.csv')
+
+    return y_pred

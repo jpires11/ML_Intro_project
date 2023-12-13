@@ -13,7 +13,7 @@ import prepocessing as pre
 import neural_network as nn
 
 
-data, test_data, train_preprocessed, test_preprocessed = pre.preprocess(True, False)
+data, test_data, train_preprocessed, test_preprocessed = pre.preprocess(False, True)
 
 #dV.excel_doc(data,test_data, train_preprocessed, test_preprocessed,"train_processed_just_CDDD.xlsx","test_processed_just_CDDD.xlsx")
 """n =25
@@ -44,8 +44,9 @@ test_preprocessed.fillna(0, inplace=True)
 
 #pf.artificial_neurons(train_preprocessed,test_preprocessed)
 
-pf.forest(train_preprocessed,test_preprocessed)
+#pf.forest(train_preprocessed,test_preprocessed)
 #pf.new_forest(train_preprocessed,test_preprocessed)
 #pf.NN_prediction(train_preprocessed, test_preprocessed)
 
 #nn.artificial_network(train_preprocessed,test_preprocessed)
+pf.xgb_predict(train_preprocessed,test_preprocessed)
