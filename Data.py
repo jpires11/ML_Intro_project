@@ -13,15 +13,9 @@ import prepocessing as pre
 import neural_network as nn
 
 
-data, test_data, train_preprocessed, test_preprocessed = pre.preprocess(False, True)
+#data, test_data, train_preprocessed, test_preprocessed = pre.preprocess(False, True)
 
 #dV.excel_doc(data,test_data, train_preprocessed, test_preprocessed,"train_processed_just_CDDD.xlsx","test_processed_just_CDDD.xlsx")
-"""n =25
-
-dV.scatterRTvsCompound(data, n)
-dV.RTvsCDDD(dV.mergeRT_CDDD(data, cddd, 100))
-dV.HeatMap(pre.mergeRT_CDDD(data, cddd))
-dV.RTvsCompoundbyLab(data, n, save = True)"""
 
 #pre.preprocess_and_check_constants(train_preprocessed)
 #test_preprocessed=test_preprocessed.drop(columns=pre.remove_highly_correlated(train_preprocessed))
@@ -52,5 +46,9 @@ test_preprocessed.fillna(0, inplace=True)
 #pf.xgb_predict(train_preprocessed,test_preprocessed)
 
 
-pf.polynomial_regression_with_regulation(train_preprocessed,test_preprocessed)
+#pf.polynomial_regression_with_regulation(train_preprocessed,test_preprocessed)
 #pf.linear_model(train_preprocessed,test_preprocessed)
+
+
+
+dV.compare_predictions(os.path.join("Results","XGB.csv"), os.path.join("Results","artificial_neurons.csv"))

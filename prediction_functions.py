@@ -443,16 +443,16 @@ def xgb_predict(train_data, test_data):
 
     # Hyperparameter grid for tuning
     param_grid = {
-       # 'max_depth': [3, 5, 7],
-        #'learning_rate': [0.1, 0.01],
-        #'n_estimators': [100,100,10000],
-       # 'reg_alpha': [0, 0.001, 0.01],
-        #'min_child_weight': [1, 3, 5],
-        #'subsample': [0.6, 0.8, 1.0],
-        #'colsample_bytree': [0.6, 0.8, 1.0],
+        'max_depth': [3, 5, 7],
+        'learning_rate': [0.1, 0.01],
+        'n_estimators': [100,100,10000],
+        'reg_alpha': [0, 0.001, 0.01],
+        'min_child_weight': [1, 3, 5],
+        'subsample': [0.6, 0.8, 1.0],
+        'colsample_bytree': [0.6, 0.8, 1.0],
         
-        'max_depth': [ 7],
-        'learning_rate': [0.1],
+        #'max_depth': [ 7],
+        #'learning_rate': [0.1],
         #'n_estimators': [500],
         #'reg_alpha': [ 0.01],
         #
@@ -477,6 +477,6 @@ def xgb_predict(train_data, test_data):
     # Predict on the test set
     y_pred = best_model.predict(X_test)
     print("creating file")
-    creation_result_file(y_pred, 'XGBß.csv')
+    creation_result_file(y_pred, 'XGB.csv')
 
     return y_pred

@@ -172,3 +172,41 @@ def GD_parameters(train_clean, test_data, save = False):
     if (save == True):
         plt.savefig(os.path.join("visualisation", 'GradientDescentEPParameters.jpg'))
     plt.show()
+    
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def compare_predictions(file_path1, file_path2):
+    # Read the first CSV file into a pandas DataFrame, skipping the first row
+    data1 = pd.read_csv(file_path1, skiprows=1, names=['ID', 'RT_1'])
+
+    # Read the second CSV file into another pandas DataFrame, skipping the first row
+    data2 = pd.read_csv(file_path2, skiprows=1, names=['ID', 'RT_2'])
+
+    # Extract 'ID' and 'RT' values from both DataFrames
+    id_values_1 = data1['ID'][:150]
+    y_pred_1 = data1['RT_1'][:150]
+
+    id_values_2 = data2['ID'][:150]
+    y_pred_2 = data2['RT_2'][:150]
+
+    # Plotting both sets of predictions on the same graph
+    plt.figure(figsize=(8, 6))
+    
+    def extract_file_name(file_path):
+        return os.path.basename(file_path).split('Results\\')[-1]
+    file_name1 = extract_file_name(file_path1)  # Extract file name
+    file_name2 = extract_file_name(file_path2)  # Extract file name
+
+    plt.scatter(id_values_1, y_pred_1, label=file_name1)
+    plt.scatter(id_values_2, y_pred_2, label=file_name2)
+
+    plt.xlabel('ID')
+    plt.ylabel('Predicted Value (RT)')
+    plt.title('Comparison of Prediction Results')
+    plt.legend()
+    plt.show()
+
+# Usage:
+file_path_1 = 'path_to_file1.csv'
+file_path_2 = 'path_to_file2.csv'
