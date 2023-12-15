@@ -49,4 +49,8 @@ test_preprocessed.fillna(0, inplace=True)
 #pf.NN_prediction(train_preprocessed, test_preprocessed)
 
 #nn.artificial_network(train_preprocessed,test_preprocessed)
-pf.xgb_predict(train_preprocessed,test_preprocessed)
+#pf.xgb_predict(train_preprocessed,test_preprocessed)
+
+
+pf.polynomial_regression_with_regulation(train_preprocessed,test_preprocessed)
+#pf.linear_model(train_preprocessed,test_preprocessed)

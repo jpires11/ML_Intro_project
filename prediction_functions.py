@@ -37,19 +37,64 @@ def linear_model(data,test_data):
     #test_rmse = np.sqrt(mean_squared_error(y_test, y_pred))
     #print(f"Test RMSE: {test_rmse:.4f}")
     
-    
-import statsmodels.api as sm
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import Ridge, Lasso
+from sklearn.model_selection import GridSearchCV
+import numpy as np
+from sklearn.pipeline import Pipeline
 
-def poisson_regression(data, test_data):
-    np.random.seed(42)
-    #Setup the training and test sets
-    X_train,y_train,X_test= pre.create_sets(data,test_data)
-    # Fit the Poisson regression model
-    poisson_model = sm.GLM(y_train, X_train, family=sm.families.Poisson()).fit()
-    # Predict 'y' for the test set using the trained model
-    y_pred = poisson_model.predict(X_test)
-    # # Save the prediction in a CSV file
-    creation_result_file(y_pred,'prediction_poisson_model.csv')
+def polynomial_regression_with_regulation(train_data, test_data):
+    """
+    Perform polynomial regression with both Lasso (L1) and Ridge (L2) regularization.
+
+    Parameters:
+    train_data (tuple or list): Tuple or list containing training data (X_train, y_train).
+    test_data (tuple or list): Tuple or list containing test data (X_test).
+
+    Returns:
+    numpy.ndarray: Predicted values for the test data.
+    """
+     # Set random seed for reproducibility
+    #np.random.seed(42)
+    # Unpack the train and test data
+    X_train,y_train,X_test= pre.create_sets(train_data,test_data)
+
+    # Parameters for GridSearchCV
+    param_grid = {
+        'poly__degree': [1, 2, 3, 4],  # Polynomial degrees to search
+        'regression': [Ridge(), Lasso()],  # Ridge and Lasso regressions
+        'regression__alpha': [0.1, 1.0, 10.0]  # Alpha values for regularization
+    }
+
+    # Create a pipeline with PolynomialFeatures and Ridge/Lasso regression
+    poly = PolynomialFeatures()
+    regression = [Ridge(), Lasso()]
+    
+    # Pipeline
+    model = Pipeline([
+        ('poly', poly),
+        ('regression', regression)
+    ])
+    # Perform grid search
+    print ("fitting the grid")
+    grid_search = GridSearchCV(model, param_grid, cv=3, scoring='neg_mean_squared_error',n_jobs=-1)
+    grid_search.fit(X_train, y_train)
+    
+    # Extract best degree, model, and alpha values
+    best_degree = grid_search.best_params_['poly__degree']
+    best_model = grid_search.best_params_['regression']
+    best_alpha = grid_search.best_params_['regression__alpha']
+    
+    print("Best MSE: %f using degree=%d, model=%s and alpha=%f" % (grid_search.best_score_, best_degree, type(best_model).__name__, best_alpha))
+
+    # Make predictions on test data
+    print ("fitting the model")
+    y_pred = grid_search.predict(X_test)
+    
+    # Save the predictions in a CSV file (change function as needed)
+    creation_result_file(y_pred, 'polynomial_with_regulation.csv')
+
+    return y_pred
     
     
 #KNN model
@@ -111,7 +156,7 @@ def rigid_regulation(data,test_data):
     np.random.seed(42)
     X_train,y_train,X_test= pre.create_sets(data,test_data)
     print(X_train)
-    alpha_values = [0.1, 1, 10, 100]  # Example alpha values to try
+    alpha_values = [0.1, 1, 10, 100]  # Example alpha values 
     ridge_cv = RidgeCV(alphas=alpha_values, cv=5)  # Use 5-fold cross-validation
     ridge_cv.fit(X_train, y_train)  # X is your input data, y is your target variable
     print("Best MSE: %f using %s" % (ridge_cv.best_score_, ridge_cv.alpha_))
@@ -132,7 +177,7 @@ def lasso_regulation(data,test_data):
     from sklearn.linear_model import Lasso, LassoCV
     np.random.seed(42)
     X_train,y_train,X_test= pre.create_sets(data,test_data)
-    alpha_values = [0.1, 1, 5,10,15,20,25,50, 100]  # Example alpha values to try
+    alpha_values = [0.1, 1, 5,10,15,20,25,50, 100]  # Example alpha values
 
     lasso_cv = LassoCV(alphas=alpha_values, cv=5)  # Use 5-fold cross-validation
     lasso_cv.fit(X_train, y_train)  # X is your input data, y is your target variable
