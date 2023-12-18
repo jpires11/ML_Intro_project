@@ -11,10 +11,11 @@ from openpyxl.workbook import Workbook
 import prediction_functions as pf
 import prepocessing as pre 
 import neural_network as nn
-
+import numpy as np
 
 data, test_data, train_preprocessed, test_preprocessed = pre.preprocess(False, True)
-
+dataC, test_dataC, train_preprocessedC, test_preprocessedC = pre.preprocess(True, False)
+dV.excel_doc(data,test_data, train_preprocessed, test_preprocessed,name_train_processed="train_processed.xlsx", name_test_processed="test_processed.xlsx")
 #dV.excel_doc(data,test_data, train_preprocessed, test_preprocessed,"train_processed_just_CDDD.xlsx","test_processed_just_CDDD.xlsx")
 """n =25
 
@@ -42,11 +43,16 @@ test_preprocessed.fillna(0, inplace=True)
 #dV.GD_parameters(train_clean, test_data, save = True)
 #pf.gradient_descent(train_clean,test_preprocessed, learning_rate=0.05, epochs=400)
 
-#pf.artificial_neurons(train_preprocessed,test_preprocessed)
+pf.artificial_neurons(train_preprocessed,test_preprocessed)
 
 #pf.forest(train_preprocessed,test_preprocessed)
 #pf.new_forest(train_preprocessed,test_preprocessed)
 #pf.NN_prediction(train_preprocessed, test_preprocessed)
 
 #nn.artificial_network(train_preprocessed,test_preprocessed)
-pf.xgb_predict(train_preprocessed,test_preprocessed)
+
+'''XGBF = pf.xgb_predict(train_preprocessed,test_preprocessed)
+XGBC = pf.xgb_predict(train_preprocessedC,test_preprocessedC)
+plt.scatter(np.arange(1375), XGBF)
+plt.scatter(np.arange(1375), XGBC)
+plt.show()'''

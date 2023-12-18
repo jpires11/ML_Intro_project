@@ -68,6 +68,7 @@ def preprocess_and_check_constants(data, test_data):
 
     # Remove the same columns from test data
     test_data = test_data.drop(constant_cols_data, axis=1, errors='ignore')
+    return data,test_data
 
 #test if variable are correlated 
 def remove_highly_correlated(data,test_data, threshold=0.9):
@@ -89,7 +90,7 @@ def remove_highly_correlated(data,test_data, threshold=0.9):
     data.to_csv(os.path.join("Data_set", 'train_modified_data_CDDD.csv'), index=False)
     test_data = test_data.drop(columns=to_drop)
     test_data.to_csv(os.path.join("Data_set", 'test_modified_data_CDDD.csv'), index=False)
-    
+    return data,test_data
 
 def mergeRT_CDDD(data, cddd, n=513, onlyRT = False, RT = True, ECFP = False):
     #Assuming 'data' is your DataFrame
@@ -132,14 +133,14 @@ def preprocess(CDDD = False, ECFP = True):
         train_preprocessed=dummies(train_data,'train_modified_data_CDDD.csv')
         test_preprocessed=dummies(test_data,'test_modified_data_CDDD.csv')
         # Removal of constant or correlated parameters
-        preprocess_and_check_constants(train_preprocessed,test_preprocessed)
-        remove_highly_correlated(train_preprocessed,test_preprocessed, threshold=0.9)
+        train_preprocessed, test_preprocessed = preprocess_and_check_constants(train_preprocessed,test_preprocessed)
+        train_preprocessed, test_preprocessed = remove_highly_correlated(train_preprocessed,test_preprocessed, threshold=0.9)
     else:
         # Encoding of Labs
         train_preprocessed=dummies(train_data,'train_modified_data.csv')
         test_preprocessed=dummies(test_data,'test_modified_data.csv')
         # Removal of constant or correlated parameters
-        preprocess_and_check_constants(train_preprocessed,test_preprocessed)
-        remove_highly_correlated(train_preprocessed,test_preprocessed, threshold=0.9)
+        train_preprocessed, test_preprocessed = preprocess_and_check_constants(train_preprocessed,test_preprocessed)
+        train_preprocessed, test_preprocessed = remove_highly_correlated(train_preprocessed,test_preprocessed, threshold=0.9)
 
     return train_data, test_data, train_preprocessed, test_preprocessed

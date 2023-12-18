@@ -290,7 +290,7 @@ def artificial_neurons(data,test_data):
         optimizer__lr=0.001,
         #module__l1_strength=0.001,# Adjust the L1 strength value
         #optimizer__weight_decay=0.0001, #Adjust L2 strenght value
-        max_epochs=400,
+        max_epochs=30,
         batch_size=32,
         callbacks=[EarlyStopping(patience=15)],  # Adjust patience 
         verbose=True
@@ -299,7 +299,7 @@ def artificial_neurons(data,test_data):
 
     # Define the parameter grid for hyperparameter tuning
     param_grid = {
-        'module__n_neurons': [8,50,100,256],
+        'module__n_neurons': [8,50],
         'module__dropout_rate':[0.2,0.5]
         #'module__activation': [func for name, func in activation_functions],
         #'optimizer': [optim.Adam, optim.SGD, optim.RMSprop],
@@ -391,6 +391,7 @@ import xgboost as xgb
 from sklearn.model_selection import GridSearchCV
 
 def xgb_predict(train_data, test_data):
+    
     # Initialize XGBoost regressor or classifier based on the problem
     model = xgb.XGBRegressor()  # For regression, change to XGBClassifier for classification
 
