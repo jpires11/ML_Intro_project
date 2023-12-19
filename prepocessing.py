@@ -1,12 +1,24 @@
 
+from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import numpy as np
 import os
 
-def create_sets(data,test_data):
+def create_sets(ECFP = True, CDDD = False):
+    train, test, data, test_data = preprocess(ECFP, CDDD)
     X_train = data.drop(["SMILES", 'RT', "mol", "Compound"], axis=1).copy()
     y_train = data['RT']
     X_test = test_data.drop(["SMILES", "mol", "Compound"], axis=1).copy()
+    '''
+    # Standardize the input features
+    X_standardizer = StandardScaler()
+    X_train = X_standardizer.fit_transform(X_train)
+    # Standardize the output features (y_train)
+    y_standardizer = StandardScaler()
+    y_train_reshaped = y_train.values.reshape(-1, 1)  # Convert to NumPy array and reshape
+    y_train = y_standardizer.fit_transform(y_train_reshaped)
+    X_test = X_standardizer.transform(X_test)
+    '''
     return X_train,y_train,X_test
 
 def test_missing_values(data):
@@ -92,23 +104,22 @@ def remove_highly_correlated(data,test_data, threshold=0.9):
     test_data.to_csv(os.path.join("Data_set", 'test_modified_data_CDDD.csv'), index=False)
     return data,test_data
 
-def mergeRT_CDDD(data, cddd, n=513, onlyRT = False, RT = True, ECFP = False):
+def mergeRT_CDDD(data, cddd, RT = True, ECFP = False):
     #Assuming 'data' is your DataFrame
     merged_data = pd.merge(data, cddd, on='SMILES')
     # Select columns of interest
     if RT == True:
-        if onlyRT == True:
-            selected_columns = ['RT'] + [f'cddd_{i}' for i in range(1, n)]
-        else:
-            selected_columns = ['RT'] + ['SMILES'] + ['mol'] + ['Compound'] + ["Lab"] + [f'cddd_{i}' for i in range(1, n)]
+        # to create validation sets
+        selected_columns = ['RT'] + ['SMILES'] + ['mol'] + ['Compound'] + ["Lab"] + [f'cddd_{i}' for i in range(1, 513)]
     else:
-        selected_columns = ['SMILES'] + ['mol'] + ['Compound'] + ["Lab"] + [f'cddd_{i}' for i in range(1, n)]
+        # to create validation sets
+        selected_columns = ['SMILES'] + ['mol'] + ['Compound'] + ["Lab"] + [f'cddd_{i}' for i in range(1, 513)]
     if ECFP == True:
         selected_columns += [f'ECFP_{i}' for i in range(1, 1025)]
     subset_data = merged_data[selected_columns]
     return subset_data
 
-def preprocess(CDDD = False, ECFP = True):
+def preprocess(ECFP = True, CDDD = False):
     train_data= pd.read_csv(os.path.join("Data_set",'train.csv'))
     test_data=pd.read_csv(os.path.join("Data_set","test.csv"))
     
@@ -129,18 +140,11 @@ def preprocess(CDDD = False, ECFP = True):
             col_mean = train_data[col].mean()
             train_data[col].fillna(col_mean, inplace=True)
     
-        # Encoding of Labs
-        train_preprocessed=dummies(train_data,'train_modified_data_CDDD.csv')
-        test_preprocessed=dummies(test_data,'test_modified_data_CDDD.csv')
-        # Removal of constant or correlated parameters
-        train_preprocessed, test_preprocessed = preprocess_and_check_constants(train_preprocessed,test_preprocessed)
-        train_preprocessed, test_preprocessed = remove_highly_correlated(train_preprocessed,test_preprocessed, threshold=0.9)
-    else:
-        # Encoding of Labs
-        train_preprocessed=dummies(train_data,'train_modified_data.csv')
-        test_preprocessed=dummies(test_data,'test_modified_data.csv')
-        # Removal of constant or correlated parameters
-        train_preprocessed, test_preprocessed = preprocess_and_check_constants(train_preprocessed,test_preprocessed)
-        train_preprocessed, test_preprocessed = remove_highly_correlated(train_preprocessed,test_preprocessed, threshold=0.9)
+    # Encoding of Labs
+    train_preprocessed=dummies(train_data,'train_modified_data_CDDD.csv')
+    test_preprocessed=dummies(test_data,'test_modified_data_CDDD.csv')
+    # Removal of constant or correlated parameters
+    train_preprocessed, test_preprocessed = preprocess_and_check_constants(train_preprocessed,test_preprocessed)
+    train_preprocessed, test_preprocessed = remove_highly_correlated(train_preprocessed,test_preprocessed, threshold=0.9)
 
     return train_data, test_data, train_preprocessed, test_preprocessed

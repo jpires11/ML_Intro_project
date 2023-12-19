@@ -20,11 +20,10 @@ def creation_result_file(prediction, name_of_file):
     output_df.to_csv(os.path.join("Results",name_of_file), index=False)
     
     
-def linear_model(data,test_data):
+def linear_model(X_train,y_train,X_test):
     
     np.random.seed(42)
     #Setup the training and test sets
-    X_train,y_train,X_test= pre.create_sets(data,test_data)
     # Initialize and train the linear regression model
     linear_model = LinearRegression()
     linear_model.fit(X_train, y_train)
@@ -40,10 +39,9 @@ def linear_model(data,test_data):
     
 import statsmodels.api as sm
 
-def poisson_regression(data, test_data):
+def poisson_regression(X_train,y_train,X_test):
     np.random.seed(42)
     #Setup the training and test sets
-    X_train,y_train,X_test= pre.create_sets(data,test_data)
     # Fit the Poisson regression model
     poisson_model = sm.GLM(y_train, X_train, family=sm.families.Poisson()).fit()
     # Predict 'y' for the test set using the trained model
@@ -88,11 +86,9 @@ def knn_regression_best_model(data):
     return best_params ['n_neighbors']
 
 
-def knn_regression(data, test_data):
+def knn_regression(X_train,y_train,X_test):
     np.random.seed(42)
     #Setup the training and test sets
-    X_train,y_train,X_test= pre.create_sets(data,test_data)
-    
     # Initialize KNN Regressor
     n_neighbors = knn_regression_best_model(data)
     knn = KNeighborsRegressor(n_neighbors)  
@@ -105,11 +101,10 @@ def knn_regression(data, test_data):
     creation_result_file(y_pred,'prediction_knn.csv')
     
 
-def rigid_regulation(data,test_data):
+def rigid_regulation(X_train,y_train,X_test):
     from sklearn.linear_model import Ridge
     from sklearn.linear_model import RidgeCV
     np.random.seed(42)
-    X_train,y_train,X_test= pre.create_sets(data,test_data)
     print(X_train)
     alpha_values = [0.1, 1, 10, 100]  # Example alpha values to try
     ridge_cv = RidgeCV(alphas=alpha_values, cv=5)  # Use 5-fold cross-validation
@@ -127,11 +122,10 @@ def rigid_regulation(data,test_data):
     # # Save the prediction in a CSV file
     creation_result_file(y_pred,'prediction_L2.csv')
     
-def lasso_regulation(data,test_data):
+def lasso_regulation(X_train,y_train,X_test):
     # Set seed for reproducibility
     from sklearn.linear_model import Lasso, LassoCV
     np.random.seed(42)
-    X_train,y_train,X_test= pre.create_sets(data,test_data)
     alpha_values = [0.1, 1, 5,10,15,20,25,50, 100]  # Example alpha values to try
 
     lasso_cv = LassoCV(alphas=alpha_values, cv=5)  # Use 5-fold cross-validation
@@ -153,7 +147,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.preprocessing import StandardScaler
 
-def gradient_descent(data, test_data, learning_rate=0.01, epochs=1000):
+def gradient_descent(X_train,y_train,X_test, learning_rate=0.01, epochs=1000):
     """
     Perform linear regression using gradient descent.
 
@@ -169,8 +163,7 @@ def gradient_descent(data, test_data, learning_rate=0.01, epochs=1000):
 # Set seed for reproducibility
     np.random.seed(42)# Set seed for reproducibility
 
-    X_train,y_train,X_test= pre.create_sets(data,test_data)
-    
+
     # Standardize features
     scaler_train = StandardScaler()
     X_scaled_train = scaler_train.fit_transform(X_train)
@@ -208,34 +201,19 @@ import torch.optim as optim
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error
 import numpy as np
-from sklearn.preprocessing import StandardScaler
+
 from skorch import NeuralNetRegressor #sklearn + pytorch
 from skorch.callbacks import EarlyStopping
-def artificial_neurons(data,test_data):
+def artificial_neurons(X_train,y_train,X_test):
 
     # Set seed for NumPy
     torch.manual_seed(42)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(42)
     np.random.seed(42)
-    X_train,y_train,X_test= pre.create_sets(data,test_data)
-
-    # Standardize the input features
-    X_standardizer = StandardScaler()
-    X_standardized = X_standardizer.fit_transform(X_train)
-
-    # Standardize the output features (y_train)
-    y_standardizer = StandardScaler()
-    y_train_reshaped = y_train.values.reshape(-1, 1)  # Convert to NumPy array and reshape
-    Y_standardized = y_standardizer.fit_transform(y_train_reshaped)
-
-
-    standardized_test = X_standardizer.transform(X_test)
- 
-    
-    X_tensor = torch.tensor(X_standardized, dtype=torch.float32)
-    y_tensor = torch.tensor(Y_standardized, dtype=torch.float32)
-    test_tensor = torch.tensor(standardized_test, dtype=torch.float32)
+    X_tensor = torch.tensor(X_train, dtype=torch.float32)
+    y_tensor = torch.tensor(y_train, dtype=torch.float32)
+    test_tensor = torch.tensor(X_test, dtype=torch.float32)
 
 
     print ("")
@@ -252,7 +230,7 @@ def artificial_neurons(data,test_data):
 
     # Define the neural network model using PyTorch
     class NN_model(nn.Module):
-        def __init__(self, input_size=X_standardized.shape[1], n_neurons=8, dropout_rate=0.5,activation=nn.ReLU()):#, l1_strength=0.001):#, l2_strength=0.0001):
+        def __init__(self, input_size=X_test.shape[1], n_neurons=8, dropout_rate=0.5,activation=nn.ReLU()):#, l1_strength=0.001):#, l2_strength=0.0001):
             super().__init__()
             self.layers = nn.Sequential(
                 nn.Linear(input_size, n_neurons),
@@ -337,31 +315,29 @@ def artificial_neurons(data,test_data):
     y_pred_standardized = y_pred_torch.flatten()  # Flatten predictions
 
     # Inverse transform the standardized predictions
-    y_pred = y_standardizer.inverse_transform(y_pred_standardized.reshape(-1, 1)).flatten()
+    y_pred = y_train.inverse_transform(y_pred_standardized.reshape(-1, 1)).flatten()
 
     # Save predictions to a file
     creation_result_file(y_pred, 'artificial_neurons.csv')
 
     
-    y_pred_standardized = y_standardizer.inverse_transform(y_pred_torch).flatten()
+    y_pred_standardized = y_train.inverse_transform(y_pred_torch).flatten()
     y_pred = y_pred_standardized.flatten()  # Assuming 'y_pred_standardized' contains the inverse transformed values
 
     # Save predictions to a file
     print("creating file")
     creation_result_file(y_pred, 'artificial_neurons.csv')
     
-def forest(data,test_data):
+def forest(X_train,y_train,X_test):
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.model_selection import GridSearchCV
     from sklearn.decomposition import PCA
     # Set seed for reproducibility
     np.random.seed(42)
     model = RandomForestRegressor(random_state=42)
-    X_train,y_train,X_test= pre.create_sets(data,test_data)
-
     param_grid = {
-        'n_estimators': [100,200,400],  # Number of trees in the forest
-        'max_depth': [None,5,10,15],  # Maximum depth of the tree
+        'n_estimators': [200],  # Number of trees in the forest
+        'max_depth': [None],  # Maximum depth of the tree
         #'min_samples_split': [2, 5, 10],  # Test different values for min_samples_split
         #'min_samples_leaf': [1, 2, 4],  # Test different values for min_samples_leaf
         'max_features': ['sqrt', 'log2', None]  # Max features to consider for splitting
@@ -390,12 +366,10 @@ import xgboost as xgb
 
 from sklearn.model_selection import GridSearchCV
 
-def xgb_predict(train_data, test_data):
+def xgb_predict(X_train,y_train,X_test):
     
     # Initialize XGBoost regressor or classifier based on the problem
     model = xgb.XGBRegressor()  # For regression, change to XGBClassifier for classification
-
-    X_train, y_train, X_test = pre.create_sets(train_data, test_data)
 
     # Hyperparameter grid for tuning
     param_grid = {
