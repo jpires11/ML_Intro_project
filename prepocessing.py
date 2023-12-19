@@ -5,6 +5,15 @@ import numpy as np
 import os
 
 def create_sets(ECFP = True, CDDD = False):
+    '''
+    Function:
+    creates X_train, y_train, X_test sets by preprocessing the dataframes
+    imported in the preprocess function. Standardises?
+    Arguments: 
+    ECFP and RT -- Booleans indicating what molecule representation we want in our sets.
+    Return:
+    X_train,y_train,X_test -- The arguments of the prediction functions
+    '''
     train, test, data, test_data = preprocess(ECFP, CDDD)
     X_train = data.drop(["SMILES", 'RT', "mol", "Compound"], axis=1).copy()
     y_train = data['RT']
@@ -35,6 +44,15 @@ def test_missing_values(data):
 
 
 def dummies(data, name):
+    '''
+    Function:
+    Encodes Labs in binary.
+    Arguments: 
+    data -- The Panda Dataframes for which we wish to encode the Labs column
+    name -- string indicating the name of the output csv file
+    Return:
+    data_encode -- New Panda Dataframes with encoded Lab columns.
+    '''
     import os
     data_encode= data.copy()
     # Convert 'Lab' column to categorical if it's not already categorical
@@ -69,6 +87,14 @@ def dummies(data, name):
 
 
 def preprocess_and_check_constants(data, test_data):
+    '''
+    Function:
+    Removes constant colums in a dataset.
+    Arguments: 
+    data, test_data -- The Panda Dataframes for which we wish to remove the constant columns
+    Return:
+    data, test_data -- New Panda Dataframes without constant columns.
+    '''
     # Identify constant columns in data
     constant_cols_data = data.columns[data.nunique() == 1].tolist()
 
@@ -84,6 +110,15 @@ def preprocess_and_check_constants(data, test_data):
 
 #test if variable are correlated 
 def remove_highly_correlated(data,test_data, threshold=0.9):
+    '''
+    Function:
+    Removes Highly correlated colums in a data set.
+    Arguments: 
+    data, test_data -- The Panda Dataframes for which we wish to remove the correlated columns
+    threshold -- float indicating the correlation threshold
+    Return:
+    data, test_data -- New Panda Dataframes without correlated columns.
+    '''
     # Identify only numeric columns
     numeric_cols = data.select_dtypes(include=np.number).columns.tolist()
 
@@ -105,11 +140,19 @@ def remove_highly_correlated(data,test_data, threshold=0.9):
     return data,test_data
 
 def mergeRT_CDDD(data, cddd, RT = True, ECFP = False):
-    #Assuming 'data' is your DataFrame
+    '''
+    Function:
+    Merges CDDDs to dataset. Keeps ECFPs in the dataset as well is ECFP is True
+    Arguments: 
+    ECFP and RT -- Booleans indicating what molecule representation we want in our sets.
+    cddd --  Dataframe containing CDDD values
+    data -- A Panda Dataframe containing ECFPs, Labs and Compounds
+    Return:
+    subdet_data. A dataframe containing the desired representations.
+    '''
     merged_data = pd.merge(data, cddd, on='SMILES')
     # Select columns of interest
     if RT == True:
-        # to create validation sets
         selected_columns = ['RT'] + ['SMILES'] + ['mol'] + ['Compound'] + ["Lab"] + [f'cddd_{i}' for i in range(1, 513)]
     else:
         # to create validation sets
@@ -120,6 +163,15 @@ def mergeRT_CDDD(data, cddd, RT = True, ECFP = False):
     return subset_data
 
 def preprocess(ECFP = True, CDDD = False):
+    '''
+    Function:
+    Imports datasets train and test. Replaces missing CDDD values with the average of the column.
+    Calls dummies function to encode Labs using 0s and 1s. Removes constants and highly correlated values.
+    Arguments: 
+    ECFP and RT -- Booleans indicating what molecule representation we want in our sets.
+    Return:
+    train_data, test_data, train_preprocessed, test_preprocessed -- The preprcocessed dataframes.
+    '''
     train_data= pd.read_csv(os.path.join("Data_set",'train.csv'))
     test_data=pd.read_csv(os.path.join("Data_set","test.csv"))
     
