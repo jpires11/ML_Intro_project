@@ -19,6 +19,7 @@ def create_sets(ECFP = True, CDDD = False):
     y_train = data['RT']
     X_test = test_data.drop(["SMILES", "mol", "Compound"], axis=1).copy()
     
+<<<<<<< HEAD
     # Standardize the input features
     X_standardizer = StandardScaler()
     X_train = X_standardizer.fit_transform(X_train)
@@ -29,6 +30,10 @@ def create_sets(ECFP = True, CDDD = False):
     X_test = X_standardizer.transform(X_test)
     
     
+=======
+
+
+>>>>>>> bbb7ffefd30d54b0fb8dbee8176debd7e54c35d8
     return X_train,y_train,X_test
 
 def test_missing_values(data):
@@ -81,11 +86,6 @@ def dummies(data, name):
     data_encode.to_csv(os.path.join("Data_set", name), index=False)
     
     return data_encode
-
-    
-#test if there is constante values
-    
-
 
 def preprocess_and_check_constants(data, test_data):
     '''
@@ -151,7 +151,11 @@ def mergeRT_CDDD(data, cddd, RT = True, ECFP = False):
     Return:
     subdet_data. A dataframe containing the desired representations.
     '''
+<<<<<<< HEAD
     merged_data = pd.merge(data, cddd, on='SMILES',how = "left")
+=======
+    merged_data = pd.merge(data, cddd, on='SMILES', how='left')
+>>>>>>> bbb7ffefd30d54b0fb8dbee8176debd7e54c35d8
     # Select columns of interest
     if RT == True:
         selected_columns = ['RT'] + ['SMILES'] + ['mol'] + ['Compound'] + ["Lab"] + [f'cddd_{i}' for i in range(1, 513)]
