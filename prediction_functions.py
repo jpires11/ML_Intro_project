@@ -51,7 +51,7 @@ def poisson_regression(X_train,y_train,X_test):
     
     
 #KNN model
-def knn_regression_best_model(data):
+def knn_regression_best_model(X_train,y_train):
     """
     finding the best number of neighbors to use in KNN regression and also
     returns the mse useful to chose a cv appropriate
@@ -59,8 +59,8 @@ def knn_regression_best_model(data):
     """
     np.random.seed(42)
     # Split data into training and holdout validation sets
-    X = data.drop(["SMILES",'RT',"mol","Compound"], axis=1)  # Adjust columns to drop if needed
-    y = data['RT']
+    X =X_train  # Adjust columns to drop if needed
+    y = y_train
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
     
     # Define the range of hyperparameters to test
@@ -90,7 +90,7 @@ def knn_regression(X_train,y_train,X_test):
     np.random.seed(42)
     #Setup the training and test sets
     # Initialize KNN Regressor
-    n_neighbors = knn_regression_best_model(data)
+    n_neighbors = knn_regression_best_model(X_train,y_train)
     knn = KNeighborsRegressor(n_neighbors)  
 
     # Fit the KNN model and Predict 'y' for the test set
@@ -101,11 +101,10 @@ def knn_regression(X_train,y_train,X_test):
     creation_result_file(y_pred,'prediction_knn.csv')
     
 
-def rigid_regulation(X_train,y_train,X_test):
+def ridge_regulation(X_train,y_train,X_test):
     from sklearn.linear_model import Ridge
     from sklearn.linear_model import RidgeCV
     np.random.seed(42)
-    print(X_train)
     alpha_values = [0.1, 1, 10, 100]  # Example alpha values to try
     ridge_cv = RidgeCV(alphas=alpha_values, cv=5)  # Use 5-fold cross-validation
     ridge_cv.fit(X_train, y_train)  # X is your input data, y is your target variable
@@ -118,7 +117,6 @@ def rigid_regulation(X_train,y_train,X_test):
 
     # Make predictions on the test set
     y_pred = ridge.predict(X_test)
-    print (y_pred)
     # # Save the prediction in a CSV file
     creation_result_file(y_pred,'prediction_L2.csv')
     
@@ -211,14 +209,16 @@ def artificial_neurons(X_train,y_train,X_test):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(42)
     np.random.seed(42)
+    
+    y_standardizer = StandardScaler()
+    
+    y_train = y_standardizer.fit_transform(y_train.values.reshape(-1,1))
+    
     X_tensor = torch.tensor(X_train, dtype=torch.float32)
     y_tensor = torch.tensor(y_train, dtype=torch.float32)
     test_tensor = torch.tensor(X_test, dtype=torch.float32)
 
-
-    print ("")
-    print(X_tensor.size()) 
-   
+ 
    
     activation_functions = [
     ('ReLU', nn.ReLU()),
@@ -230,7 +230,7 @@ def artificial_neurons(X_train,y_train,X_test):
 
     # Define the neural network model using PyTorch
     class NN_model(nn.Module):
-        def __init__(self, input_size=X_test.shape[1], n_neurons=8, dropout_rate=0.5,activation=nn.ReLU()):#, l1_strength=0.001):#, l2_strength=0.0001):
+        def __init__(self, input_size=X_train.shape[1], n_neurons=8, dropout_rate=0.5,activation=nn.ReLU(), l1_strength=0.001):#, l2_strength=0.0001):
             super().__init__()
             self.layers = nn.Sequential(
                 nn.Linear(input_size, n_neurons),
@@ -241,17 +241,17 @@ def artificial_neurons(X_train,y_train,X_test):
                 nn.Dropout(p=dropout_rate),
                 nn.Linear(n_neurons, 1)
             )
-            #self.l1_strength = l1_strength
+            self.l1_strength = l1_strength
             #self.l2_strength = l2_strength
 
         def forward(self, x):
             return self.layers(x)
         
-        """  def l1_penalty(self):
+        def l1_penalty(self):
             l1_reg = 0
             for param in self.parameters():
                 l1_reg += torch.norm(param, p=1)
-            return self.l1_strength * l1_reg"""
+            return self.l1_strength * l1_reg
         
         """ def l2_penalty(self):
             l2_reg = 0
@@ -266,26 +266,25 @@ def artificial_neurons(X_train,y_train,X_test):
         criterion=nn.MSELoss,
         optimizer=optim.Adam,
         optimizer__lr=0.001,
-        #module__l1_strength=0.001,# Adjust the L1 strength value
+        module__l1_strength=0.001,# Adjust the L1 strength value
         #optimizer__weight_decay=0.0001, #Adjust L2 strenght value
-        max_epochs=30,
+        max_epochs=400,
         batch_size=32,
-        callbacks=[EarlyStopping(patience=15)],  # Adjust patience 
+        callbacks=[EarlyStopping(patience=20)],  # Adjust patience 
         verbose=True
         
     )
 
     # Define the parameter grid for hyperparameter tuning
     param_grid = {
-        'module__n_neurons': [8,50],
-        'module__dropout_rate':[0.2,0.5]
-        #'module__activation': [func for name, func in activation_functions],
+        'module__n_neurons': [10,50,100,256],
+        'module__dropout_rate':[0.2,0.5],
+        'module__activation': [func for name, func in activation_functions],
         #'optimizer': [optim.Adam, optim.SGD, optim.RMSprop],
         #'optimizer__lr': [0.001, 0.01,0.1],
-        #'module__l1_strength': [0.001, 0.01],
+        'module__l1_strength': [0.001, 0.01],
         #'optimizer__weight_decay': [0.0001, 0.001, 0.01], # L2 strength
         #'max_epochs': [ 300,400] 
-        #'callbacks': [[EarlyStopping(patience=10)] for i in range(5, 15)]  # Patience values to search
     }
 
     # Perform GridSearchCV for hyperparameter tuning
@@ -310,22 +309,17 @@ def artificial_neurons(X_train,y_train,X_test):
     print("setting tensor")
     # Convert test data to tensor or numpy array
     print("predicting")
-    y_pred_torch = mach2.predict(test_tensor)
+    print("Best MSE: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+    y_pred = mach2.predict(test_tensor)
     # Make predictions
-    y_pred_standardized = y_pred_torch.flatten()  # Flatten predictions
+    #y_pred_standardized = y_pred_torch.flatten()  # Flatten predictions
+    # Assuming y_pred is a PyTorch tensor
+    #y_pred = y_pred.view(-1)  # Reshape to match the shape of your targets
 
     # Inverse transform the standardized predictions
-    y_pred = y_train.inverse_transform(y_pred_standardized.reshape(-1, 1)).flatten()
+    y_pred = y_standardizer.inverse_transform(y_pred.reshape(-1, 1)).flatten()
 
     # Save predictions to a file
-    creation_result_file(y_pred, 'artificial_neurons.csv')
-
-    
-    y_pred_standardized = y_train.inverse_transform(y_pred_torch).flatten()
-    y_pred = y_pred_standardized.flatten()  # Assuming 'y_pred_standardized' contains the inverse transformed values
-
-    # Save predictions to a file
-    print("creating file")
     creation_result_file(y_pred, 'artificial_neurons.csv')
     
 def forest(X_train,y_train,X_test):
@@ -373,13 +367,13 @@ def xgb_predict(X_train,y_train,X_test):
 
     # Hyperparameter grid for tuning
     param_grid = {
-       # 'max_depth': [3, 5, 7],
-        #'learning_rate': [0.1, 0.01],
-        #'n_estimators': [100,100,10000],
-       # 'reg_alpha': [0, 0.001, 0.01],
-        #'min_child_weight': [1, 3, 5],
-        #'subsample': [0.6, 0.8, 1.0],
-        #'colsample_bytree': [0.6, 0.8, 1.0],
+        'max_depth': [3, 5, 7],
+        'learning_rate': [0.1, 0.01],
+        'n_estimators': [100,500,1000],
+        'reg_alpha': [0, 0.001, 0.01],
+        'min_child_weight': [1, 3, 5],
+        'subsample': [0.6, 0.8, 1.0],
+        'colsample_bytree': [0.6, 0.8, 1.0],
         
         'max_depth': [ 7],
         'learning_rate': [0.1],
@@ -407,6 +401,6 @@ def xgb_predict(X_train,y_train,X_test):
     # Predict on the test set
     y_pred = best_model.predict(X_test)
     print("creating file")
-    creation_result_file(y_pred, 'XGBß.csv')
+    creation_result_file(y_pred, 'XGB.csv')
 
     return y_pred
