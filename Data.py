@@ -13,7 +13,7 @@ import prepocessing as pre
 import neural_network as nn
 import numpy as np
 
-X_train,y_train,X_test = pre.create_sets()
+X_train,y_train,X_test = pre.create_sets(ECFP = False, CDDD = True)
 #data, test_data, train_preprocessed, test_preprocessed = pre.preprocess(False, True)
 #dataC, test_dataC, train_preprocessedC, test_preprocessedC = pre.preprocess(True, False)
 #dV.excel_doc(data,test_data, train_preprocessed, test_preprocessed,name_train_processed="train_processed.xlsx", name_test_processed="test_processed.xlsx")
@@ -46,13 +46,14 @@ test_preprocessed.fillna(0, inplace=True)
 
 #pf.artificial_neurons(train_preprocessed,test_preprocessed)
 
-pf.forest(X_train,y_train,X_test)
+#pf.forest(X_train,y_train,X_test)
 #pf.new_forest(train_preprocessed,test_preprocessed)
 #pf.NN_prediction(train_preprocessed, test_preprocessed)
 
 #nn.artificial_network(train_preprocessed,test_preprocessed)
 
-'''XGBF = pf.xgb_predict(train_preprocessed,test_preprocessed)
+pf.xgb_predict(X_train,y_train,X_test)
+'''
 XGBC = pf.xgb_predict(train_preprocessedC,test_preprocessedC)
 plt.scatter(np.arange(1375), XGBF)
 plt.scatter(np.arange(1375), XGBC)

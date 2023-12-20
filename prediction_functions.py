@@ -12,6 +12,7 @@ import os
 import prepocessing as pre
 
 def creation_result_file(prediction, name_of_file):
+
     prediction[prediction < 0] = 0
     ids = range(1, len(prediction) + 1)  # Generate IDs starting from 1
     output_df = pd.DataFrame({'ID': ids, 'RT': prediction})
@@ -332,6 +333,16 @@ def forest(X_train,y_train,X_test):
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.model_selection import GridSearchCV
     from sklearn.decomposition import PCA
+    
+    # Standardize the input features
+    X_standardizer = StandardScaler()
+    X_train = X_standardizer.fit_transform(X_train)
+    # Standardize the output features (y_train)
+    y_standardizer = StandardScaler()
+    #y_train_reshaped = y_train.values.reshape(-1, 1)  # Convert to NumPy array and reshape
+    #y_train = y_standardizer.fit_transform(y_train_reshaped)
+    X_test = X_standardizer.transform(X_test)
+    
     # Set seed for reproducibility
     np.random.seed(42)
     model = RandomForestRegressor(random_state=42)
@@ -340,7 +351,7 @@ def forest(X_train,y_train,X_test):
         'max_depth': [None],  # Maximum depth of the tree
         #'min_samples_split': [2, 5, 10],  # Test different values for min_samples_split
         #'min_samples_leaf': [1, 2, 4],  # Test different values for min_samples_leaf
-        'max_features': ['sqrt', 'log2', None]  # Max features to consider for splitting
+        'max_features': ['log2', None]  # Max features to consider for splitting
         #'bootstrap': [True, False],  # Whether bootstrap samples are used
        # 'max_samples': [0.5, 0.7, 0.9, None],  # Number of samples to draw for each tree
        # 'ccp_alpha': [0.0, 0.1, 0.2],  # Cost Complexity Pruning parameter
@@ -357,7 +368,7 @@ def forest(X_train,y_train,X_test):
     best_model = grid_search.best_estimator_
     print("predicting")
     y_pred = best_model.predict(X_test)
-    
+    #y_pred = y_standardizer.inverse_transform(y_pred.reshape(-1, 1)).flatten()
     # Save predictions to a file
     print("creating file")
     creation_result_file(y_pred, 'random_forest.csv')
@@ -373,16 +384,16 @@ def xgb_predict(X_train,y_train,X_test):
 
     # Hyperparameter grid for tuning
     param_grid = {
-       # 'max_depth': [3, 5, 7],
-        #'learning_rate': [0.1, 0.01],
-        #'n_estimators': [100,100,10000],
-       # 'reg_alpha': [0, 0.001, 0.01],
+        'max_depth': [5, 7],
+        'learning_rate': [0.1, 0.01],
+        'n_estimators': [100, 500],
+        'reg_alpha': [0, 0.001, 0.01],
         #'min_child_weight': [1, 3, 5],
         #'subsample': [0.6, 0.8, 1.0],
         #'colsample_bytree': [0.6, 0.8, 1.0],
         
-        'max_depth': [ 7],
-        'learning_rate': [0.1],
+        #'max_depth': [ 7],
+        #'learning_rate': [0.1],
         #'n_estimators': [500],
         #'reg_alpha': [ 0.01],
         #
