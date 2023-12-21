@@ -76,32 +76,6 @@ def linear_model(X_train,y_train,X_test):
     # Save the predication in csv file
     creation_result_file(y_pred,'prediction_linear_model.csv')
     
-    
-def poisson_regression(X_train,y_train,X_test):
-    """
-    Trains a Poisson regression model using the provided training data and predicts on the test set.
-
-    Args:
-    - X_train (array-like): Training input samples.
-    - y_train (array-like): Target values for training.
-    - X_test (array-like): Test input samples for prediction.
-
-    Returns:
-    None
-
-    This function fits a Poisson regression model using the given training data (X_train, y_train)
-    and predicts on the provided test set (X_test). The predictions are saved in a CSV file named
-    'prediction_poisson_model.csv' using the `creation_result_file` function.
-    """
-    np.random.seed(42)
-    # Fit the Poisson regression model
-    poisson_model = sm.GLM(y_train, X_train, family=sm.families.Poisson()).fit()
-    # Predict 'y' for the test set using the trained model
-    y_pred = poisson_model.predict(X_test)
-    # # Save the prediction in a CSV file
-    creation_result_file(y_pred,'prediction_poisson_model.csv')
-    
-    
 def knn_regression_best_model(X_train,y_train):
     """
     Finds the optimal number of neighbors for KNN regression and returns the associated MSE.

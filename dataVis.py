@@ -184,7 +184,9 @@ def compare_predictions(file_list, save = False):
         def extract_file_name(file_path):
             return os.path.basename(file_path).split('Results\\')[-1]
         file_name = extract_file_name(path)  # Extract file name
-        plt.plot(x_values, y_pred["RT"], label=file_name)
+        variance = np.var(y_pred["RT"])
+        print(variance)
+        plt.plot(x_values, y_pred["RT"], label=file_name, alpha = 0.75, linewidth = 2)
 
     plt.xlabel('ID')
     plt.ylabel('Predicted Value (RT)')
