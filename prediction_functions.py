@@ -5,14 +5,41 @@ from sklearn.model_selection import train_test_split #to get best K neighbors
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error
+import statsmodels.api as sm # used in poisson regression
 import numpy as np
 import random
 import pandas as pd
 import os
 import prepocessing as pre
+from sklearn.linear_model import Ridge,RidgeCV
+from sklearn.linear_model import Lasso, LassoCV
+from sklearn.preprocessing import StandardScaler
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from skorch import NeuralNetRegressor #sklearn + pytorch
+from skorch.callbacks import EarlyStopping
+from sklearn.ensemble import RandomForestRegressor
+import xgboost as xgb
+
+
+
 
 def creation_result_file(prediction, name_of_file):
+    """
+    Creates a result file from a prediction array.
 
+    Args:
+    - prediction (array-like): The predicted values.
+    - name_of_file (str): The name of the file to be created.
+
+    Returns:
+    None
+
+    This function generates a result file from a prediction array and saves it as a CSV file
+    in the 'Results' folder. The prediction array is adjusted to ensure non-negative values,
+    and the output file contains IDs starting from 1 and the corresponding predicted values.
+    """
     prediction[prediction < 0] = 0
     ids = range(1, len(prediction) + 1)  # Generate IDs starting from 1
     output_df = pd.DataFrame({'ID': ids, 'RT': prediction})
@@ -22,7 +49,21 @@ def creation_result_file(prediction, name_of_file):
     
     
 def linear_model(X_train,y_train,X_test):
-    
+    """
+    Trains a linear regression model using the provided training data and predicts on the test set.
+
+    Args:
+    - X_train (array-like): Training input samples.
+    - y_train (array-like): Target values for training.
+    - X_test (array-like): Test input samples for prediction.
+
+    Returns:
+    None
+
+    This function initializes and trains a linear regression model using the given training data
+    (X_train, y_train) and predicts on the provided test set (X_test). The predictions are saved
+    in a CSV file named 'prediction_linear_model.csv' using the `creation_result_file` function.
+    """
     np.random.seed(42)
     #Setup the training and test sets
     # Initialize and train the linear regression model
@@ -34,15 +75,25 @@ def linear_model(X_train,y_train,X_test):
     
     # Save the predication in csv file
     creation_result_file(y_pred,'prediction_linear_model.csv')
-    #test_rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-    #print(f"Test RMSE: {test_rmse:.4f}")
     
     
-import statsmodels.api as sm
-
 def poisson_regression(X_train,y_train,X_test):
+    """
+    Trains a Poisson regression model using the provided training data and predicts on the test set.
+
+    Args:
+    - X_train (array-like): Training input samples.
+    - y_train (array-like): Target values for training.
+    - X_test (array-like): Test input samples for prediction.
+
+    Returns:
+    None
+
+    This function fits a Poisson regression model using the given training data (X_train, y_train)
+    and predicts on the provided test set (X_test). The predictions are saved in a CSV file named
+    'prediction_poisson_model.csv' using the `creation_result_file` function.
+    """
     np.random.seed(42)
-    #Setup the training and test sets
     # Fit the Poisson regression model
     poisson_model = sm.GLM(y_train, X_train, family=sm.families.Poisson()).fit()
     # Predict 'y' for the test set using the trained model
@@ -51,18 +102,29 @@ def poisson_regression(X_train,y_train,X_test):
     creation_result_file(y_pred,'prediction_poisson_model.csv')
     
     
-#KNN model
 def knn_regression_best_model(X_train,y_train):
     """
-    finding the best number of neighbors to use in KNN regression and also
-    returns the mse useful to chose a cv appropriate
-        
+    Finds the optimal number of neighbors for KNN regression and returns the associated MSE.
+
+    Args:
+    - X_train (array-like): Training input samples.
+    - y_train (array-like): Target values for training.
+
+    Returns:
+    int: The best number of neighbors found through cross-validation.
+
+    This function splits the data into training and holdout validation sets, performs a grid search
+    with cross-validation to find the optimal number of neighbors for KNN regression, and returns
+    the best number of neighbors found. It prints the best number of neighbors and the associated
+    mean squared error (MSE) on the holdout validation set.
+
+    Note:
+    This function internally uses scikit-learn's GridSearchCV to perform hyperparameter tuning
+    for the KNN regressor.
     """
     np.random.seed(42)
     # Split data into training and holdout validation sets
-    X =X_train  # Adjust columns to drop if needed
-    y = y_train
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
     
     # Define the range of hyperparameters to test
     param_grid = {'n_neighbors': [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]}  
@@ -88,8 +150,23 @@ def knn_regression_best_model(X_train,y_train):
 
 
 def knn_regression(X_train,y_train,X_test):
+    """
+    Performs KNN regression on given training and test data.
+
+    Args:
+    - X_train (array-like): Training input samples.
+    - y_train (array-like): Target values for training.
+    - X_test (array-like): Test input samples for prediction.
+
+    Returns:
+    None
+
+    This function initializes and performs KNN regression on the provided training data (X_train, y_train)
+    and predicts on the given test set (X_test). The number of neighbors is determined using the
+    `knn_regression_best_model` function, and predictions are saved in a CSV file named
+    'prediction_knn.csv' using the `creation_result_file` function.
+    """
     np.random.seed(42)
-    #Setup the training and test sets
     # Initialize KNN Regressor
     n_neighbors = knn_regression_best_model(X_train,y_train)
     knn = KNeighborsRegressor(n_neighbors)  
@@ -103,8 +180,24 @@ def knn_regression(X_train,y_train,X_test):
     
 
 def ridge_regulation(X_train,y_train,X_test):
-    from sklearn.linear_model import Ridge
-    from sklearn.linear_model import RidgeCV
+    """
+    Performs Ridge regression with cross-validated alpha selection.
+
+    Args:
+    - X_train (array-like): Training input samples.
+    - y_train (array-like): Target values for training.
+    - X_test (array-like): Test input samples for prediction.
+
+    Returns:
+    None
+
+    This function conducts Ridge regression on the provided training data (X_train, y_train) using
+    cross-validated alpha selection. It identifies the best alpha value using RidgeCV with a specified
+    set of alpha values and 5-fold cross-validation. The trained model is then applied to predict
+    on the given test set (X_test). The predictions are saved in a CSV file named 'prediction_L2.csv'
+    using the `creation_result_file` function.
+    """
+    
     np.random.seed(42)
     alpha_values = [0.1, 1, 10, 100]  # Example alpha values to try
     ridge_cv = RidgeCV(alphas=alpha_values, cv=5)  # Use 5-fold cross-validation
@@ -121,19 +214,20 @@ def ridge_regulation(X_train,y_train,X_test):
     # # Save the prediction in a CSV file
     creation_result_file(y_pred,'prediction_L2.csv')
     
+    
 def lasso_regulation(X_train,y_train,X_test):
-    # Set seed for reproducibility
-    from sklearn.linear_model import Lasso, LassoCV
-    np.random.seed(42)
-    alpha_values = [0.1, 1, 5,10,15,20,25,50, 100]  # Example alpha values to try
-
-    lasso_cv = LassoCV(alphas=alpha_values, cv=5)  # Use 5-fold cross-validation
-    lasso_cv.fit(X_train, y_train)  # X is your input data, y is your target variable
-
+    
+    np.random.seed(42)  # Set seed for reproducibility
+    alpha_values = [0.1, 1, 5,10,15,20,25,50, 100] 
+    
+    # Hyperparameter tuning with cross validation
+    lasso_cv = LassoCV(alphas=alpha_values, cv=5)  
+    # Fitting of the model
+    lasso_cv.fit(X_train, y_train) 
     best_alpha = lasso_cv.alpha_
     print(f"Best alpha value: {best_alpha}")
 
-    # Once you have the best alpha value, you can fit the model with the entire dataset
+    # Fit the model with best parameters
     lasso = Lasso(alpha=best_alpha)
     lasso.fit(X_train, y_train)
     y_pred= lasso.predict(X_test)
@@ -141,10 +235,6 @@ def lasso_regulation(X_train,y_train,X_test):
     creation_result_file(y_pred,'prediction_L1.csv')
 
 
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.preprocessing import StandardScaler
 
 def gradient_descent(X_train,y_train,X_test, learning_rate=0.01, epochs=1000):
     """
@@ -159,17 +249,15 @@ def gradient_descent(X_train,y_train,X_test, learning_rate=0.01, epochs=1000):
     Returns:
     - weights: Learned weights for the linear regression model
     """
-# Set seed for reproducibility
-    np.random.seed(42)# Set seed for reproducibility
 
-
+    np.random.seed(42)  # Set seed for reproducibility
     # Standardize features
     scaler_train = StandardScaler()
     X_scaled_train = scaler_train.fit_transform(X_train)
-    
+    X_scaled_test = scaler_train.transform(X_test)
     # Add a column of ones for the bias term
     X_scaled_train = np.c_[np.ones(X_scaled_train.shape[0]), X_scaled_train]
-
+    X_scaled_test = np.c_[np.ones(X_scaled_test.shape[0]), X_scaled_test]
     # Initialize weights
     weights = np.zeros(X_scaled_train.shape[1])
 
@@ -180,13 +268,6 @@ def gradient_descent(X_train,y_train,X_test, learning_rate=0.01, epochs=1000):
         gradient = 2 * np.dot(errors, X_scaled_train) / len(y_train)
         weights -= learning_rate * gradient
 
-
-
-    X_scaled_test = scaler_train.transform(X_test)
-    
-    # Add a column of ones for the bias term
-    X_scaled_test = np.c_[np.ones(X_scaled_test.shape[0]), X_scaled_test]
-
     # Make predictions on the test set
     y_pred = np.dot(X_scaled_test, weights)
 
@@ -194,44 +275,36 @@ def gradient_descent(X_train,y_train,X_test, learning_rate=0.01, epochs=1000):
     creation_result_file(y_pred, 'prediction_GD.csv')
 
     return y_pred
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import mean_squared_error
-import numpy as np
 
-from skorch import NeuralNetRegressor #sklearn + pytorch
-from skorch.callbacks import EarlyStopping
-def artificial_neurons(X_train,y_train,X_test):
+
+
+def artificial_neurons(X_train,y_train,X_test, use_grid_search=True):
 
     # Set seed for NumPy
     torch.manual_seed(42)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(42)
     np.random.seed(42)
+    # Standardization 
     
     y_standardizer = StandardScaler()
-    
     y_train = y_standardizer.fit_transform(y_train.values.reshape(-1,1))
-    
+    # Tensors
     X_tensor = torch.tensor(X_train, dtype=torch.float32)
     y_tensor = torch.tensor(y_train, dtype=torch.float32)
     test_tensor = torch.tensor(X_test, dtype=torch.float32)
 
  
-   
     activation_functions = [
     ('ReLU', nn.ReLU()),
     ('LeakyReLU', nn.LeakyReLU()),
     ('Tanh', nn.Tanh()),
     ('Sigmoid', nn.Sigmoid()),
-    # Add more activation functions here
     ]
 
     # Define the neural network model using PyTorch
     class NN_model(nn.Module):
-        def __init__(self, input_size=X_train.shape[1], n_neurons=8, dropout_rate=0.5,activation=nn.ReLU(), l1_strength=0.001):#, l2_strength=0.0001):
+        def __init__(self, input_size=X_train.shape[1], n_neurons=8, dropout_rate=0.5,activation=nn.ReLU(), l1_strength=0.001):
             super().__init__()
             self.layers = nn.Sequential(
                 nn.Linear(input_size, n_neurons),
@@ -243,7 +316,6 @@ def artificial_neurons(X_train,y_train,X_test):
                 nn.Linear(n_neurons, 1)
             )
             self.l1_strength = l1_strength
-            #self.l2_strength = l2_strength
 
         def forward(self, x):
             return self.layers(x)
@@ -254,14 +326,7 @@ def artificial_neurons(X_train,y_train,X_test):
                 l1_reg += torch.norm(param, p=1)
             return self.l1_strength * l1_reg
         
-        """ def l2_penalty(self):
-            l2_reg = 0
-            for param in self.parameters():
-                l2_reg += torch.norm(param, p=2)
-            return self.l2_strength * l2_reg"""
-
     # create model with skorch
-    from skorch.callbacks import EarlyStopping
     model_skorch = NeuralNetRegressor(
         NN_model,
         criterion=nn.MSELoss,
@@ -273,154 +338,139 @@ def artificial_neurons(X_train,y_train,X_test):
         batch_size=32,
         callbacks=[EarlyStopping(patience=20)],  # Adjust patience 
         verbose=True
-        
     )
 
-    # Define the parameter grid for hyperparameter tuning
-    param_grid = {
-        'module__n_neurons': [10,50,100,256],
-        'module__dropout_rate':[0.2,0.5],
-        'module__activation': [func for name, func in activation_functions],
-        #'optimizer': [optim.Adam, optim.SGD, optim.RMSprop],
-        #'optimizer__lr': [0.001, 0.01,0.1],
-        'module__l1_strength': [0.001, 0.01],
-        #'optimizer__weight_decay': [0.0001, 0.001, 0.01], # L2 strength
-        #'max_epochs': [ 300,400] 
-    }
+    if not use_grid_search:
+        # Use predefined hyperparameters
+        best_params = {
+            'module__n_neurons': 256,
+            'module__dropout_rate': 0.2,
+            'module__activation': nn.Sigmoid(),
+            'module__l1_strength': 0,
+        }
+
+        # Set the predefined hyperparameters
+        model_skorch.set_params(**best_params)
+        print("Using predefined hyperparameters:")
+        print(best_params)
+    else:
+        # Define the parameter grid for hyperparameter tuning
+        param_grid = {
+            'module__n_neurons': [ 128, 256, 512],
+            'module__dropout_rate': [0.2, 0.5],
+            'module__activation': [func for name, func in activation_functions],
+            'module__l1_strength': [0.001, 0.01],
+        }
 
     # Perform GridSearchCV for hyperparameter tuning
-    print("gridsearchCV")
-    np.random.seed(42)
     grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=10,n_jobs=-1,scoring="neg_mean_squared_error")
-    print ("fitting grid")
     grid_result = grid_search.fit(X_tensor, y_tensor)
-    print ("fitting done")
 
-    print("Best MSE: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
-
-    # Get the best model from the grid search
+    # Get the best model from the grid search and fit it
     mach2 = grid_result.best_estimator_
-
-    # Fit the best model to the data
-    print ("fitting model")
     mach2.fit(X_tensor, y_tensor)
-    
-
-    # Make predictions
-    print("setting tensor")
-    # Convert test data to tensor or numpy array
-    print("predicting")
     print("Best MSE: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+    
+    # Make predictions and inverse the standardisation of the output
     y_pred = mach2.predict(test_tensor)
-    # Make predictions
-    #y_pred_standardized = y_pred_torch.flatten()  # Flatten predictions
-    # Assuming y_pred is a PyTorch tensor
-    #y_pred = y_pred.view(-1)  # Reshape to match the shape of your targets
-
-    # Inverse transform the standardized predictions
     y_pred = y_standardizer.inverse_transform(y_pred.reshape(-1, 1)).flatten()
 
     # Save predictions to a file
     creation_result_file(y_pred, 'artificial_neurons.csv')
     
-def forest(X_train,y_train,X_test):
-    from sklearn.ensemble import RandomForestRegressor
-    from sklearn.model_selection import GridSearchCV
-    from sklearn.decomposition import PCA
+def forest(X_train,y_train,X_test, use_grid_search=True):
     
     # Standardize the input features
     X_standardizer = StandardScaler()
     X_train = X_standardizer.fit_transform(X_train)
-    # Standardize the output features (y_train)
-    y_standardizer = StandardScaler()
-    #y_train_reshaped = y_train.values.reshape(-1, 1)  # Convert to NumPy array and reshape
-    #y_train = y_standardizer.fit_transform(y_train_reshaped)
     X_test = X_standardizer.transform(X_test)
     
     # Set seed for reproducibility
     np.random.seed(42)
     model = RandomForestRegressor(random_state=42)
-    param_grid = {
-        'n_estimators': [200],  # Number of trees in the forest
-        'max_depth': [None],  # Maximum depth of the tree
-        #'min_samples_split': [2, 5, 10],  # Test different values for min_samples_split
-        #'min_samples_leaf': [1, 2, 4],  # Test different values for min_samples_leaf
-        'max_features': ['log2', None]  # Max features to consider for splitting
-        #'bootstrap': [True, False],  # Whether bootstrap samples are used
-       # 'max_samples': [0.5, 0.7, 0.9, None],  # Number of samples to draw for each tree
-       # 'ccp_alpha': [0.0, 0.1, 0.2],  # Cost Complexity Pruning parameter
-        #'max_leaf_nodes': [None, 10, 50, 100]  # Maximum number of leaf nodes in a tree
-    }
-    
- 
+    if not use_grid_search:
+        # Use predefined hyperparameters
+        best_params = {
+            'n_estimators': 200,
+            'max_depth': None,
+            'max_features': None
+        }
 
-    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1, scoring='neg_mean_squared_error',verbose =1)
-    print ("fitting the grid")
-    grid_search.fit(X_train, y_train)
-    print("Best MSE: %f using %s" % (grid_search.best_score_, grid_search.best_params_))
+        # Set the predefined hyperparameters
+        model.set_params(**best_params)
+        print("Using predefined hyperparameters:")
+        print(best_params)
+    else:
+        # Define the parameter grid for hyperparameter tuning
+        param_grid = {
+            'n_estimators': [ 200, 400, 600],  # Number of trees in the forest
+            'max_depth': [None, 5, 10],  # Maximum depth of the tree
+            'max_features': ['log2', None]  # Max features to consider for splitting
+        }
+        # Tuning of the hyperparameters
+        grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1, scoring='neg_mean_squared_error',verbose =1)
+        grid_search.fit(X_train, y_train)
+        print("Best MSE: %f using %s" % (grid_search.best_score_, grid_search.best_params_))
+        model = grid_search.best_estimator_
+    # Prediction
+    y_pred = model.predict(X_test)
     
-    best_model = grid_search.best_estimator_
-    print("predicting")
-    y_pred = best_model.predict(X_test)
-    #y_pred = y_standardizer.inverse_transform(y_pred.reshape(-1, 1)).flatten()
     # Save predictions to a file
-    print("creating file")
     creation_result_file(y_pred, 'random_forest.csv')
 
-import xgboost as xgb
 
-from sklearn.model_selection import GridSearchCV
-
-def xgb_predict(X_train,y_train,X_test):
+def xgb_predict(X_train, y_train, X_test, use_grid_search=True):
     
     # Initialize XGBoost regressor or classifier based on the problem
     model = xgb.XGBRegressor()  # For regression, change to XGBClassifier for classification
 
-    # Hyperparameter grid for tuning
-    param_grid = {
-<<<<<<< HEAD
-        'max_depth': [3, 5, 7],
-        'learning_rate': [0.1, 0.01],
-        'n_estimators': [100,500,1000],
-        'reg_alpha': [0, 0.001, 0.01],
-        'min_child_weight': [1, 3, 5],
-        'subsample': [0.6, 0.8, 1.0],
-        'colsample_bytree': [0.6, 0.8, 1.0],
-=======
-        'max_depth': [5, 7],
-        'learning_rate': [0.1, 0.01],
-        'n_estimators': [100, 500],
-        'reg_alpha': [0, 0.001, 0.01],
-        #'min_child_weight': [1, 3, 5],
-        #'subsample': [0.6, 0.8, 1.0],
-        #'colsample_bytree': [0.6, 0.8, 1.0],
->>>>>>> bbb7ffefd30d54b0fb8dbee8176debd7e54c35d8
+    if not use_grid_search:
+        # Hyperparameters of your choice
+        best_params = {
+            'max_depth': 7,
+            'learning_rate': 0.1,
+            'n_estimators': 800,
+            'reg_alpha': 0.01,
+            'min_child_weight': 1,
+            'subsample': 0.6,
+            'colsample_bytree': 0.6,
+        }
         
-        #'max_depth': [ 7],
-        #'learning_rate': [0.1],
-        #'n_estimators': [500],
-        #'reg_alpha': [ 0.01],
-        #
-        #'min_child_weight': [1],
-        #'subsample': [0.6],
-        #'colsample_bytree': [0.6]
-        
-        # Add more parameters for tuning
-    }
+        # Use predefined hyperparameters
+        model.set_params(**best_params)
+        print("Using predefined hyperparameters:")
+        print(best_params)
+    else:
+        # Hyperparameter grid for tuning
+        param_grid = {
+            'max_depth': [ 5, 7],  
+            'learning_rate': [ 0.1],
+            'n_estimators': [1000,1500,2000],
+            'reg_alpha': [ 0.01],
+            'min_child_weight': [1],
+            'subsample': [0.6],
+            'colsample_bytree': [0.6],
+        }
 
-    # GridSearchCV for hyperparameter tuning
-    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1,verbose=1,scoring='neg_mean_squared_error')
-    grid_search.fit(X_train, y_train)
-    print("Best MSE: %f using %s" % (grid_search.best_score_, grid_search.best_params_))
+        # GridSearchCV for hyperparameter tuning
+        grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, n_jobs=-1, verbose=1, scoring='neg_mean_squared_error')
+        grid_search.fit(X_train, y_train)
+        print("Best MSE: %f using %s" % (grid_search.best_score_, grid_search.best_params_))
 
-    # Get the best model
-    best_model = grid_search.best_estimator_
+        # Get the best model
+        best_model = grid_search.best_estimator_
 
-    # Train the best model
-    best_model.fit(X_train, y_train)
+        # Train the best model
+        best_model.fit(X_train, y_train)
+
+        # Assign the best model to the 'model' variable
+        model = best_model
+
+    # Train the model with either the predefined or best hyperparameters
+    model.fit(X_train, y_train)
 
     # Predict on the test set
-    y_pred = best_model.predict(X_test)
+    y_pred = model.predict(X_test)
     print("creating file")
     creation_result_file(y_pred, 'XGB.csv')
 

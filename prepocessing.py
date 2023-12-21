@@ -18,35 +18,12 @@ def create_sets(ECFP = True, CDDD = False):
     X_train = data.drop(["SMILES", 'RT', "mol", "Compound"], axis=1).copy()
     y_train = data['RT']
     X_test = test_data.drop(["SMILES", "mol", "Compound"], axis=1).copy()
-    
-<<<<<<< HEAD
     # Standardize the input features
     X_standardizer = StandardScaler()
     X_train = X_standardizer.fit_transform(X_train)
-    # Standardize the output features (y_train)
-    #y_standardizer = StandardScaler()
-    #y_train_reshaped = y_train.values.reshape(-1, 1)  # Convert to NumPy array and reshape
-    #y_train = y_standardizer.fit_transform(y_train_reshaped)
     X_test = X_standardizer.transform(X_test)
     
-    
-=======
-
-
->>>>>>> bbb7ffefd30d54b0fb8dbee8176debd7e54c35d8
     return X_train,y_train,X_test
-
-def test_missing_values(data):
-    """testing the data for missing values
-    """
-    # Load your test dataset
-     
-
-    # Check for missing values
-    missing_values = data.isnull().sum()
-
-    # Assert that no missing values should be present in the dataset
-    assert missing_values.sum() == 0, f"Missing values found: {missing_values}"
 
 
 def dummies(data, name):
@@ -151,11 +128,7 @@ def mergeRT_CDDD(data, cddd, RT = True, ECFP = False):
     Return:
     subdet_data. A dataframe containing the desired representations.
     '''
-<<<<<<< HEAD
-    merged_data = pd.merge(data, cddd, on='SMILES',how = "left")
-=======
     merged_data = pd.merge(data, cddd, on='SMILES', how='left')
->>>>>>> bbb7ffefd30d54b0fb8dbee8176debd7e54c35d8
     # Select columns of interest
     if RT == True:
         selected_columns = ['RT'] + ['SMILES'] + ['mol'] + ['Compound'] + ["Lab"] + [f'cddd_{i}' for i in range(1, 513)]
