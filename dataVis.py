@@ -89,7 +89,6 @@ def RTvsCompoundbyLab(data, n, save = False):
     filtered_data = data[data['Compound'].isin(first_drugs)]
     sorted_df = filtered_data.sort_values(by='RT')
     labs = sorted_df['Lab'].unique().tolist()
-    print(len(labs))
 
     fig, axes = plt.subplots(nrows=4, ncols=6, figsize=(20, 10), gridspec_kw={'wspace': .5, 'hspace': .5})
     axes = axes.flatten()
@@ -104,6 +103,7 @@ def RTvsCompoundbyLab(data, n, save = False):
             ax = axes[i]
             labdata = sorted_df[sorted_df['Lab'] == lab]
             sns.scatterplot(x='Compound', y='RT', data=labdata, ax=ax)
+            ax.set_xticks(range(len(labdata['Compound'])))
             ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right', fontsize= 3)
             ax.set_title(f'Lab {lab}', fontsize=6)
         else:
@@ -114,26 +114,27 @@ def RTvsCompoundbyLab(data, n, save = False):
     
     plt.show()
 
-def GD_parameters(train_clean, test_data, save = False):
-    X_,y_train,X_te= pre.create_sets(train_clean,test_data)
-    X_train, X_val, y_train, y_val = pf.train_test_split(train_clean, y_train, test_size=0.2, random_state=42)
-    train = pd.merge(X_train, y_train)
+def GD_parameters(X_train,y_train,X_test, save = False):
+    """
+    Visualises MSE for different Gradient Descent parameters. 
+    Notably epochs and learning rate.
+    Note: Some Learning Rate values can cause errors. 
+    """
+    X_train, X_val, y_train, y_val = pf.train_test_split(X_train, y_train, test_size=0.2, random_state=42)
+    train = np.column_stack((X_train, y_train))
 
     # Initialize a range of learning rates to try
-    learning_rates = [0.05, 0.01, 0.005]
+    learning_rates = [0.05, 0.01, 0.005, 0.0001]
     epochs = [300, 400, 500, 600, 700]
     # Dictionary to store results for each learning rate
     results = {}
-    X_val = X_val.drop(['RT'], axis=1)
+    #X_val = X_val.drop(['RT'], axis=1)
 
 
     for lr in learning_rates:
         # Train the model with the current learning rate
-        y_pred = pf.gradient_descent(train, X_val, lr, epochs=500)  # Adjust epochs as needed
+        y_pred = pf.gradient_descent(X_train,y_train,X_val, lr, epochs=500)  # Adjust epochs as needed
        
-        # Ensure that y_val has the correct shape
-        print(f"Shape of y_val: {X_val.shape}")
-
         # Evaluate the model using mean squared error
         mse = pf.mean_squared_error(y_val, y_pred)
         
@@ -152,11 +153,8 @@ def GD_parameters(train_clean, test_data, save = False):
     results = {}
     for ep in epochs:
         # Train the model with the current learning rate
-        y_pred = pf.gradient_descent(train, X_val, 0.01, epochs=ep)  # Adjust epochs as needed
+        y_pred = pf.gradient_descent(X_train,y_train,X_val, 0.01, epochs=ep)  # Adjust epochs as needed
         
-        # Ensure that y_val has the correct shape
-        print(f"Shape of y_val: {X_val.shape}")
-
         # Evaluate the model using mean squared error
         mse = pf.mean_squared_error(y_val, y_pred)
         

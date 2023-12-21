@@ -21,7 +21,7 @@ file_list = [os.path.join("Results","prediction_GD.csv"),
              os.path.join("Results","random_forest.csv"),
              os.path.join("Results","artificial_neurons.csv")]
 
-#X_train,y_train,X_test = pre.create_sets(ECFP = True, CDDD = False)
+#X_train,y_train,X_test = pre.create_sets(ECFP = False, CDDD = True)
 
 #dV.excel_doc(data,test_data, train_preprocessed, test_preprocessed,name_train_processed="train_processed.xlsx", name_test_processed="test_processed.xlsx")
 #dV.excel_doc(data,test_data, train_preprocessed, test_preprocessed,"train_processed_just_CDDD.xlsx","test_processed_just_CDDD.xlsx")
@@ -29,9 +29,9 @@ def visualise():
     data = pd.read_csv("Data_set/train.csv") 
     cddd = pd.read_csv("Data_set/cddd.csv")
     #dV.scatterRTvsCompound(data, 25)
-    dV.RTvsCDDD(pre.mergeRT_CDDD(data, cddd))
+    #dV.RTvsCDDD(pre.mergeRT_CDDD(data, cddd))
     #dV.HeatMap(pre.mergeRT_CDDD(data, cddd))
-    #dV.RTvsCompoundbyLab(data, 25, save = True)
+    dV.RTvsCompoundbyLab(data, 25, save = True)
     #dV.compare_predictions(file_list, save = True)
 visualise()
 
@@ -40,7 +40,7 @@ visualise()
 #pf.ridge_regulation(X_train,y_train,X_test)
 #pf.lasso_regulation(X_train,y_train,X_test)
 
-#dV.GD_parameters(train_clean, test_data, save = True)
+#dV.GD_parameters(X_train,y_train,X_test, save = True)
 #pf.gradient_descent(X_train,y_train,X_test, learning_rate=0.01, epochs=400)
 
 #pf.artificial_neurons(X_train,y_train,X_test)
