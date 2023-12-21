@@ -40,22 +40,9 @@ visualise()
 #pf.ridge_regulation(X_train,y_train,X_test)
 #pf.lasso_regulation(X_train,y_train,X_test)
 
-#pf.artificial_neurons(X_train,y_train,X_test)
-#pf.forest(X_train,y_train,X_test)
-#pf.xgb_predict(X_train,y_train,X_test)
-
-
-######################################
-
-#pf.DG_regression_best_model(data, train_clean,test_preprocessed)
-
 #dV.GD_parameters(train_clean, test_data, save = True)
 #pf.gradient_descent(X_train,y_train,X_test, learning_rate=0.01, epochs=400)
 
-#pf.new_forest(train_preprocessed,test_preprocessed)
-#pf.NN_prediction(train_preprocessed, test_preprocessed)
-
-#nn.artificial_network(train_preprocessed,test_preprocessed)
-
-#####################################
-
+#pf.artificial_neurons(X_train,y_train,X_test)
+#pf.forest(X_train,y_train,X_test)
+#pf.xgb_predict(X_train,y_train,X_test)
