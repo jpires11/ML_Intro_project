@@ -190,7 +190,23 @@ def ridge_regulation(X_train,y_train,X_test):
     
     
 def lasso_regulation(X_train,y_train,X_test):
-    
+    """
+    Trains a Lasso regression model with hyperparameter tuning and predicts on the test set.
+
+    Args:
+    - X_train : Training input features.
+    - y_train : Target values for training.
+    - X_test : Test input features for prediction.
+
+    Returns:
+    None
+
+    This function performs Lasso regression on the provided training data (X_train, y_train).
+    It conducts hyperparameter tuning using cross-validation and a predefined set of alpha values.
+    The model is trained with the best alpha value obtained from the tuning process and used to predict
+    on the test set. The predictions are saved in a CSV file named 'prediction_L1.csv' using the
+    `creation_result_file` function.
+    """
     np.random.seed(42)  # Set seed for reproducibility
     alpha_values = [0.1, 1, 5,10,15,20,25,50, 100] 
     
@@ -253,7 +269,25 @@ def gradient_descent(X_train,y_train,X_test, learning_rate=0.01, epochs=1000):
 
 
 def artificial_neurons(X_train,y_train,X_test, use_grid_search=True):
+    """
+    Trains a neural network model using Skorch and performs predictions on the test set.
 
+    Args:
+    - X_train : Training input samples.
+    - y_train : Target values for training.
+    - X_test : Test input samples for prediction.
+    - use_grid_search (bool, optional): Flag to perform grid search for hyperparameter tuning. Default is True.
+
+    Returns:
+    None
+
+    This function builds a neural network model using PyTorch and Skorch. It standardizes the target values,
+    defines various activation functions, and creates a neural network model architecture with configurable
+    hyperparameters such as the number of neurons, dropout rate, activation functions, and L1 regularization.
+    It utilizes Skorch's `NeuralNetRegressor` along with `GridSearchCV` for hyperparameter tuning if
+    `use_grid_search` is True. The predictions on the test set are saved in a CSV file named 'artificial_neurons.csv'
+    using the `creation_result_file` function.
+    """
     # Set seed for NumPy
     torch.manual_seed(42)
     if torch.cuda.is_available():
@@ -330,7 +364,7 @@ def artificial_neurons(X_train,y_train,X_test, use_grid_search=True):
     else:
         # Define the parameter grid for hyperparameter tuning
         param_grid = {
-            'module__n_neurons': [  256, 512],
+            'module__n_neurons': [256, 512, 1024],
             'module__dropout_rate': [0.2, 0.5],
             'module__activation': [func for name, func in activation_functions],
             'module__l1_strength': [0.001, 0.01],
@@ -355,7 +389,23 @@ def artificial_neurons(X_train,y_train,X_test, use_grid_search=True):
     creation_result_file(y_pred, 'artificial_neurons.csv')
     
 def forest(X_train,y_train,X_test, use_grid_search=True):
-    
+    """
+    Trains a Random Forest regressor and predicts on the test set.
+
+    Args:
+    - X_train : Training input features.
+    - y_train : Target values for training.
+    - X_test : Test input features for prediction.
+    - use_grid_search (bool, optional): Flag to perform grid search for hyperparameter tuning. Default is True.
+
+    Returns:
+    None
+
+    This function builds a Random Forest regressor model using the provided training data (X_train, y_train).
+    It standardizes the input features, and if `use_grid_search` is True, it performs hyperparameter tuning using
+    GridSearchCV. If not, it uses predefined hyperparameters. The predictions on the test set are saved in a
+    CSV file named 'random_forest.csv' using the `creation_result_file` function.
+    """
     # Standardize the input features
     X_standardizer = StandardScaler()
     X_train = X_standardizer.fit_transform(X_train)
@@ -396,7 +446,23 @@ def forest(X_train,y_train,X_test, use_grid_search=True):
 
 
 def xgb_predict(X_train, y_train, X_test, use_grid_search=True):
-    
+    """
+    Trains an XGBoost regressor and predicts on the test set.
+
+    Args:
+    - X_train : Training input features.
+    - y_train : Target values for training.
+    - X_test : Test input features for prediction.
+    - use_grid_search (bool, optional): Flag to perform grid search for hyperparameter tuning. Default is True.
+
+    Returns:
+    array-like: Predicted values.
+
+    This function builds an XGBoost regressor model using the provided training data (X_train, y_train).
+    It allows hyperparameter tuning using GridSearchCV if `use_grid_search` is True, otherwise, it uses predefined
+    hyperparameters. The predictions on the test set are saved in a CSV file named 'XGB.csv' using the
+    `creation_result_file` function.
+    """
     # Initialize XGBoost regressor or classifier based on the problem
     model = xgb.XGBRegressor()  # For regression, change to XGBClassifier for classification
 
