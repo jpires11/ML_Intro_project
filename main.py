@@ -37,8 +37,8 @@ def visualise():
 
 def repruduce_results():
     X_train,y_train,X_test = pre.create_sets(ECFP = False, CDDD = True)
-    pf.artificial_neurons(X_train,y_train,X_test,False)
-    pf.xgb_predict(X_train,y_train,X_test,False)
+    pf.artificial_neurons(X_train,y_train,X_test, use_grid_search=False)
+    pf.xgb_predict(X_train,y_train,X_test, use_grid_search=False)
     
     #pf.forest(X_train,y_train,X_test,False)
     #pf.gradient_descent(X_train,y_train,X_test, learning_rate=0.01, epochs=400)
