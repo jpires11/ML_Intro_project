@@ -28,11 +28,11 @@ def visualise():
     cddd = pd.read_csv("Data_set/cddd.csv")
     #dV.scatterRTvsCompound(data, 25)
     #dV.RTvsCDDD(pre.mergeRT_CDDD(data, cddd))
-    #dV.HeatMap(pre.mergeRT_CDDD(data, cddd))
+    dV.HeatMap(cddd)
     dV.RTvsCompoundbyLab(data, 25, save = True)
     #dV.compare_predictions(file_list, save = True)
     
-#visualise()
+visualise()
 
 
 def repruduce_results():
@@ -52,4 +52,4 @@ def repruduce_results():
     #dV.excel_doc(data,test_data, train_preprocessed, test_preprocessed,name_train_processed="train_processed.xlsx", name_test_processed="test_processed.xlsx")
     #dV.excel_doc(data,test_data, train_preprocessed, test_preprocessed,"train_processed_just_CDDD.xlsx","test_processed_just_CDDD.xlsx")
 
-repruduce_results()
+#repruduce_results()

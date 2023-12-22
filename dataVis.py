@@ -65,6 +65,8 @@ def HeatMap(subset_data, save = False):
     '''
     subset_data is a dataframe with RT and cddd only (obtainable with the mergeRT_CDDD function)
     '''
+    subset_data = subset_data.drop(["SMILES"], axis=1)
+    
     heatmap_data = subset_data.values[:, 1:]  # Exclude RT column
 
     # Create a heatmap using Matplotlib's imshow
