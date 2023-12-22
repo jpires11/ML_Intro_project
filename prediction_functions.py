@@ -307,7 +307,6 @@ def artificial_neurons(X_train,y_train,X_test, use_grid_search=True):
         optimizer=optim.Adam,
         optimizer__lr=0.001,
         module__l1_strength=0.001,# Adjust the L1 strength value
-        #optimizer__weight_decay=0.0001, #Adjust L2 strenght value
         max_epochs=400,
         batch_size=32,
         callbacks=[EarlyStopping(patience=20)],  # Adjust patience 
@@ -317,10 +316,11 @@ def artificial_neurons(X_train,y_train,X_test, use_grid_search=True):
     if not use_grid_search:
         # Use predefined hyperparameters
         best_params = {
-            'module__n_neurons': 256,
+            'module__n_neurons': 1024,
             'module__dropout_rate': 0.2,
             'module__activation': nn.Sigmoid(),
-            'module__l1_strength': 0,
+            'module__l1_strength': 0.001,
+            
         }
 
         # Set the predefined hyperparameters
@@ -330,23 +330,25 @@ def artificial_neurons(X_train,y_train,X_test, use_grid_search=True):
     else:
         # Define the parameter grid for hyperparameter tuning
         param_grid = {
-            'module__n_neurons': [ 128, 256, 512],
+            'module__n_neurons': [  256, 512],
             'module__dropout_rate': [0.2, 0.5],
             'module__activation': [func for name, func in activation_functions],
             'module__l1_strength': [0.001, 0.01],
         }
 
-    # Perform GridSearchCV for hyperparameter tuning
-    grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=10,n_jobs=-1,scoring="neg_mean_squared_error")
-    grid_result = grid_search.fit(X_tensor, y_tensor)
+        # Perform GridSearchCV for hyperparameter tuning
+        grid_search = GridSearchCV(estimator=model_skorch, param_grid=param_grid, cv=3,n_jobs=-1,scoring="neg_mean_squared_error")
+        grid_result = grid_search.fit(X_tensor, y_tensor)
 
-    # Get the best model from the grid search and fit it
-    mach2 = grid_result.best_estimator_
-    mach2.fit(X_tensor, y_tensor)
-    print("Best MSE: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+        # Get the best model from the grid search and fit it
+        model_skorch = grid_result.best_estimator_
+        print("Best MSE: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+        
+    model_skorch.fit(X_tensor, y_tensor)
+    
     
     # Make predictions and inverse the standardisation of the output
-    y_pred = mach2.predict(test_tensor)
+    y_pred = model_skorch.predict(test_tensor)
     y_pred = y_standardizer.inverse_transform(y_pred.reshape(-1, 1)).flatten()
 
     # Save predictions to a file
@@ -401,9 +403,9 @@ def xgb_predict(X_train, y_train, X_test, use_grid_search=True):
     if not use_grid_search:
         # Hyperparameters of your choice
         best_params = {
-            'max_depth': 7,
+            'max_depth': 5,
             'learning_rate': 0.1,
-            'n_estimators': 800,
+            'n_estimators': 2000,
             'reg_alpha': 0.01,
             'min_child_weight': 1,
             'subsample': 0.6,
