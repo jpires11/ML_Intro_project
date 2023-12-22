@@ -8,7 +8,7 @@ git clone https://github.com/your_username/ML_BIO-322
 To get the environment setup use the following commands
 ```
 conda env create -f environment.yml
-conda activate turing_pattern
+conda activate ML
 ```
 
 
