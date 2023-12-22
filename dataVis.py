@@ -48,13 +48,17 @@ def RTvsCDDD(subset_data, save = False):
     '''
 
     # Melt the DataFrame to have cddd values in one column
-    melted_data = pd.melt(subset_data, id_vars=['RT'], var_name='cddd', value_name='cddd_Value')
+    selected_columns = ['RT'] + [f'cddd_{i}' for i in range(1, 513)]
+    data = subset_data[selected_columns]
+    print("melting")
+    melted_data = pd.melt(data, id_vars=['RT'], var_name='cddd', value_name='cddd_Value')
 
     # Create a scatter plot using Seaborn
     plt.figure(figsize=(12, 8))
     sns.scatterplot(x='cddd', y='RT', hue='cddd_Value', data=melted_data, palette='viridis', s=4)
     plt.title('2D HeatMap Plot of Retention Times with cddd Value as Color')
-    plt.xlabel('cddd Column')
+    plt.xlabel('CDDDs')
+    plt.xticks([])
     plt.ylabel('RT')
     if (save == True):
         plt.savefig(os.path.join("visualisation", 'RTwithCDDDasColor.jpg'))
@@ -135,7 +139,7 @@ def GD_parameters(X_train,y_train,X_test, save = False):
 
     for lr in learning_rates:
         # Train the model with the current learning rate
-        y_pred = pf.gradient_descent(X_train,y_train,X_val, lr, epochs=500)  # Adjust epochs as needed
+        y_pred = pf.gradient_descent(X_train,y_train,X_val, lr, epochs=500, save = False)  # Adjust epochs as needed
        
         # Evaluate the model using mean squared error
         mse = pf.mean_squared_error(y_val, y_pred)
@@ -155,7 +159,7 @@ def GD_parameters(X_train,y_train,X_test, save = False):
     results = {}
     for ep in epochs:
         # Train the model with the current learning rate
-        y_pred = pf.gradient_descent(X_train,y_train,X_val, 0.01, epochs=ep)  # Adjust epochs as needed
+        y_pred = pf.gradient_descent(X_train,y_train,X_val, 0.01, epochs=ep, save = False)  # Adjust epochs as needed
         
         # Evaluate the model using mean squared error
         mse = pf.mean_squared_error(y_val, y_pred)

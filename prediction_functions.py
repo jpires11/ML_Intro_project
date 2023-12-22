@@ -226,7 +226,7 @@ def lasso_regulation(X_train,y_train,X_test):
 
 
 
-def gradient_descent(X_train,y_train,X_test, learning_rate=0.01, epochs=1000):
+def gradient_descent(X_train,y_train,X_test, learning_rate=0.01, epochs=1000, save = True):
     """
     Perform linear regression using gradient descent.
 
@@ -262,7 +262,8 @@ def gradient_descent(X_train,y_train,X_test, learning_rate=0.01, epochs=1000):
     y_pred = np.dot(X_scaled_test, weights)
 
     # Save predictions to a file
-    creation_result_file(y_pred, 'prediction_GD.csv')
+    if(save == True):
+        creation_result_file(y_pred, 'prediction_GD.csv')
 
     return y_pred
 
