@@ -33,7 +33,7 @@ def visualise():
     #dV.HeatMap(pre.mergeRT_CDDD(data, cddd))
     dV.RTvsCompoundbyLab(data, 25, save = True)
     #dV.compare_predictions(file_list, save = True)
-visualise()
+#visualise()
 
 #pf.linear_model(X_train,y_train,X_test)
 #pf.knn_regression(X_train,y_train,X_test)
@@ -46,3 +46,7 @@ visualise()
 #pf.artificial_neurons(X_train,y_train,X_test)
 #pf.forest(X_train,y_train,X_test)
 #pf.xgb_predict(X_train,y_train,X_test)
+def repruduce_results():
+    X_train,y_train,X_test = pre.create_sets(ECFP = False, CDDD = True)
+    pf.artificial_neurons(X_train,y_train,X_test,False)
+    pf.xgb_predict(X_train,y_train,X_test,False)
