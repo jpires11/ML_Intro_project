@@ -188,8 +188,10 @@ def compare_predictions(file_list, save = False):
         print(variance)
         plt.plot(x_values, y_pred["RT"], label=file_name, alpha = 0.75, linewidth = 2)
 
-    plt.xlabel('ID')
+    
     plt.ylabel('Predicted Value (RT)')
+    plt.xlabel('Sorted RT Values')
+    plt.xticks([])  # Remove x-axis labels
     plt.title('Comparison of Prediction Results')
     plt.legend()
     if (save == True):

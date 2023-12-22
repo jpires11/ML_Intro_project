@@ -28,9 +28,9 @@ def visualise():
     cddd = pd.read_csv("Data_set/cddd.csv")
     #dV.scatterRTvsCompound(data, 25)
     #dV.RTvsCDDD(pre.mergeRT_CDDD(data, cddd))
-    dV.HeatMap(cddd)
-    dV.RTvsCompoundbyLab(data, 25, save = True)
-    #dV.compare_predictions(file_list, save = True)
+    #dV.HeatMap(cddd)
+    #dV.RTvsCompoundbyLab(data, 25, save = True)
+    dV.compare_predictions(file_list, save = True)
     
 visualise()
 
